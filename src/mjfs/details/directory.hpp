@@ -45,9 +45,14 @@ namespace mjfs {
                 }
             }
 
+            ~_Dir_iter() noexcept {
+                if (_Valid()) {
+                    _Close_directory_iterator(_Myhandle);
+                }
+            }
+
             _Dir_iter(const _Dir_iter&)     = default;
             _Dir_iter(_Dir_iter&&) noexcept = default;
-            ~_Dir_iter() noexcept           = default;
             
             bool _Valid() const noexcept {
                 return _Is_directory_iterator_handle_valid(_Myhandle);
