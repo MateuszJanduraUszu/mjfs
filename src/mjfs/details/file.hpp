@@ -105,7 +105,7 @@ namespace mjfs {
 
         inline bool _Set_file_delete_flag(void* const _Handle) noexcept {
             FILE_DISPOSITION_INFO _Info;
-            _Info.DeleteFileW = true;
+            _Info.DeleteFile = true;
             return _Set_file_information<FileDispositionInfo>(_Handle, _Info);
         }
     } // namespace details
