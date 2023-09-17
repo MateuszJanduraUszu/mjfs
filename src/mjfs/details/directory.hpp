@@ -86,8 +86,8 @@ namespace mjfs {
                 _Entry._Mypath = _Mypath / _Mydata.cFileName;
             }
 
-            void* _Myhandle;
             WIN32_FIND_DATAW _Mydata;
+            void* _Myhandle;
             path _Mypath; // root path
         };
     } // namespace details

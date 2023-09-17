@@ -64,10 +64,10 @@ namespace mjfs {
 
     class _MJFS_API directory_iterator { // an iterator to the contents of the directory
     public:
-        using value_type = directory_entry;
-        using difference_type = ptrdiff_t;
-        using pointer = const directory_entry*;
-        using reference = const directory_entry&;
+        using value_type        = directory_entry;
+        using difference_type   = ptrdiff_t;
+        using pointer           = const directory_entry*;
+        using reference         = const directory_entry&;
         using iterator_category = ::std::input_iterator_tag;
 
         directory_iterator() noexcept;
