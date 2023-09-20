@@ -193,9 +193,9 @@ namespace mjfs {
         inline bool _Get_current_directory(wchar_t* const _Buf, const size_t _Size) noexcept {
 #ifdef _M_X64
             const unsigned long _USize = static_cast<unsigned long>(_Size);
-            return ::GetCurrentDirectoryW(_USize, _Buf) == _USize;
+            return ::GetCurrentDirectoryW(_USize, _Buf) == _USize - 1; // exclude null-terminator
 #else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
-            return ::GetCurrentDirectoryW(_Size, _Buf) == _Size;
+            return ::GetCurrentDirectoryW(_Size, _Buf) == _Size - 1; // exclude null-terminator
 #endif // _M_X64
         }
     } // namespace details
