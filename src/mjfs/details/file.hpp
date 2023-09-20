@@ -103,10 +103,21 @@ namespace mjfs {
             return _Seek_file(_Handle, _New_size) && ::SetEndOfFile(_Handle) != 0;
         }
 
-        inline bool _Set_file_delete_flag(void* const _Handle) noexcept {
+        enum class _Set_delete_flag_result : unsigned char {
+            _Success,
+            _Access_denied,
+            _Error
+        };
+
+        inline _Set_delete_flag_result _Set_delete_flag(void* const _Handle) noexcept {
             FILE_DISPOSITION_INFO _Info;
             _Info.DeleteFile = true;
-            return _Set_file_information<FileDispositionInfo>(_Handle, _Info);
+            if (_Set_file_information<FileDispositionInfo>(_Handle, _Info)) {
+                return _Set_delete_flag_result::_Success;
+            } else {
+                return ::GetLastError() == ERROR_ACCESS_DENIED ?
+                    _Set_delete_flag_result::_Access_denied : _Set_delete_flag_result::_Error;
+            }
         }
     } // namespace details
 } // namespace mjfs
