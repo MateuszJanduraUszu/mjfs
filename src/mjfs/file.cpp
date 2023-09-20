@@ -3,9 +3,12 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <memory>
 #include <mjfs/details/file.hpp>
+#include <mjfs/details/path.hpp>
 #include <mjfs/details/status.hpp>
 #include <mjfs/file.hpp>
+#include <new>
 #include <type_traits>
 
 namespace mjfs {
@@ -141,12 +144,31 @@ namespace mjfs {
             return false;
         }
 
-        if (details::_Set_file_delete_flag(_File.native_handle())) {
+        switch (details::_Set_delete_flag(_File.native_handle())) {
+        case details::_Set_delete_flag_result::_Success:
             _File.close(); // automatically deletes on close
             return true;
-        } else {
+        case details::_Set_delete_flag_result::_Access_denied: // access denied, try another way
+            break;
+        default: // an error occured, break
             return false;
         }
+
+        // Note: We couldn't set the delete flag due to insufficient access rights, but we can
+        //       attempt to obtain the file's full path and then use DeleteFileW() to delete
+        //       it based on its full path rather than its handle.
+        const size_t _Buf_size = details::_Get_final_path_length(_File.native_handle());
+        const ::std::unique_ptr<wchar_t[]> _Buf(new (::std::nothrow) wchar_t[_Buf_size]);
+        if (!_Buf) { // allocation failed, break
+            return false;
+        }
+        
+        if (!details::_Get_final_path_by_handle(_File.native_handle(), _Buf.get(), _Buf_size)) {
+            return false;
+        }
+
+        _File.close(); // must be closed
+        return ::DeleteFileW(_Buf.get()) != 0;
     }
 
     bool rename(const path& _Old_path, const path& _New_path) {
