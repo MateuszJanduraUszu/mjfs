@@ -198,6 +198,24 @@ namespace mjfs {
             return ::GetCurrentDirectoryW(_Size, _Buf) == _Size - 1; // exclude null-terminator
 #endif // _M_X64
         }
+
+        inline size_t _Get_final_path_length(void* const _Handle) noexcept {
+#ifdef _M_X64
+            return static_cast<size_t>(::GetFinalPathNameByHandleW(_Handle, nullptr, 0, 0));
+#else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
+            return ::GetFinalPathNameByHandleW(_Handle, nullptr, 0, 0);
+#endif // _M_X64
+        }
+
+        inline bool _Get_final_path_by_handle(
+            void* const _Handle, wchar_t* const _Buf, const size_t _Size) noexcept {
+#ifdef _M_X64
+            const unsigned long _USize = static_cast<unsigned long>(_Size);
+            return ::GetFinalPathNameByHandleW(_Handle, _Buf, _USize, 0) == _USize - 1; // exclude null-terminator
+#else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
+            return ::GetFinalPathNameByHandleW(_Handle, _Buf, _Size, 0) == _Size - 1; // exclude null-terminator
+#endif // _M_X64
+        }
     } // namespace details
 } // namespace mjfs
 
