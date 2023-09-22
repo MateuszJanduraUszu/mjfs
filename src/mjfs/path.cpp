@@ -262,9 +262,9 @@ namespace mjfs {
     }
 
     path current_path() {
-        const size_t _Buf_size = details::_Get_current_directory_length();
+        const size_t _Buf_size = details::_Get_current_path_length();
         path::string_type _Buf(_Buf_size, L'\0');
-        return details::_Get_current_directory(_Buf.data(), _Buf_size) ? path{_Buf} : path{};
+        return details::_Get_current_path(_Buf.data(), _Buf_size) ? path{::std::move(_Buf)} : path{};
     }
 
     bool current_path(const path& _New_path) {

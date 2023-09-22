@@ -149,7 +149,8 @@ namespace mjfs {
         inline ::std::wstring_view _Get_filename(const ::std::wstring_view _Str) noexcept {
             const _Path_segment& _Filename = _Find_filename(_Str);
             return _Filename._Found()
-                ? ::std::wstring_view{_Str.data() + _Filename._Offset, _Filename._Length} : ::std::wstring_view{};
+                ? ::std::wstring_view{_Str.data() + _Filename._Offset, _Filename._Length}
+                : ::std::wstring_view{};
         }
 
         inline ::std::wstring_view _Get_extension_from_filename(const ::std::wstring_view _Filename) noexcept {
@@ -163,7 +164,8 @@ namespace mjfs {
 
             const size_t _Dot = _Filename.rfind(L'.');
             return _Dot != ::std::wstring_view::npos && _Dot != 0
-                ? ::std::wstring_view{_Filename.data() + _Dot, _Filename.size() - _Dot} : ::std::wstring_view{};
+                ? ::std::wstring_view{_Filename.data() + _Dot, _Filename.size() - _Dot}
+                : ::std::wstring_view{};
         }
 
         inline ::std::wstring_view _Get_extension(const ::std::wstring_view _Str) noexcept {
@@ -182,20 +184,20 @@ namespace mjfs {
             }
         }
 
-        inline size_t _Get_current_directory_length() noexcept {
+        inline size_t _Get_current_path_length() noexcept {
 #ifdef _M_X64
-            return static_cast<size_t>(::GetCurrentDirectoryW(0, nullptr));
+            return static_cast<size_t>(::GetCurrentDirectoryW(0, nullptr) - 1); // exclude null-terminator
 #else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
-            return ::GetCurrentDirectoryW(0, nullptr);
+            return ::GetCurrentDirectoryW(0, nullptr) - 1; // exclude null-terminator
 #endif // _M_X64
         }
 
-        inline bool _Get_current_directory(wchar_t* const _Buf, const size_t _Size) noexcept {
+        inline bool _Get_current_path(wchar_t* const _Buf, const size_t _Size) noexcept {
 #ifdef _M_X64
             const unsigned long _USize = static_cast<unsigned long>(_Size);
-            return ::GetCurrentDirectoryW(_USize, _Buf) == _USize - 1; // exclude null-terminator
+            return ::GetCurrentDirectoryW(_USize + 1, _Buf) == _USize; // include null-terminator
 #else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
-            return ::GetCurrentDirectoryW(_Size, _Buf) == _Size - 1; // exclude null-terminator
+            return ::GetCurrentDirectoryW(_Size + 1, _Buf) == _Size; // include null-terminator
 #endif // _M_X64
         }
 
@@ -211,9 +213,11 @@ namespace mjfs {
             void* const _Handle, wchar_t* const _Buf, const size_t _Size) noexcept {
 #ifdef _M_X64
             const unsigned long _USize = static_cast<unsigned long>(_Size);
-            return ::GetFinalPathNameByHandleW(_Handle, _Buf, _USize, 0) == _USize - 1; // exclude null-terminator
+            return ::GetFinalPathNameByHandleW(
+                _Handle, _Buf, _USize, 0) == _USize - 1; // exclude null-terminator
 #else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
-            return ::GetFinalPathNameByHandleW(_Handle, _Buf, _Size, 0) == _Size - 1; // exclude null-terminator
+            return ::GetFinalPathNameByHandleW(
+                _Handle, _Buf, _Size, 0) == _Size - 1; // exclude null-terminator
 #endif // _M_X64
         }
     } // namespace details
