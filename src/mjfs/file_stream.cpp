@@ -47,6 +47,10 @@ namespace mjfs {
         return is_open() ? details::_Seek_file(_Myfile->native_handle(), _New_pos) : false;
     }
 
+    bool file_stream::seek_to_end() noexcept {
+        return is_open() ? details::_Seek_file_to_end(_Myfile->native_handle()) : false;
+    }
+
     bool file_stream::move(const off_type _Off, const move_direction _Direction) noexcept {
         if (!is_open()) {
             return false;

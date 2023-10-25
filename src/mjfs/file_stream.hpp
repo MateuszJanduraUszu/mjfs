@@ -50,6 +50,9 @@ namespace mjfs {
         // changes the stream position
         bool seek(const pos_type _New_pos) noexcept;
 
+        // changes the stream position to the end
+        bool seek_to_end() noexcept;
+
         // move the stream position
         bool move(const off_type _Off,
             const move_direction _Direction = move_direction::forward) noexcept;

@@ -99,6 +99,10 @@ namespace mjfs {
             return ::SetFilePointer(_Handle, _Low, &_High, FILE_BEGIN) != INVALID_SET_FILE_POINTER;
         }
 
+        inline bool _Seek_file_to_end(void* const _Handle) noexcept {
+            return ::SetFilePointer(_Handle, 0, nullptr, FILE_END) != INVALID_SET_FILE_POINTER;
+        }
+
         inline uint64_t _Resize_file(void* const _Handle, const uint64_t _New_size) noexcept {
             return _Seek_file(_Handle, _New_size) && ::SetEndOfFile(_Handle) != 0;
         }
