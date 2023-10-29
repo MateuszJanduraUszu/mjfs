@@ -240,11 +240,31 @@ namespace mjfs {
     }
 
     path::iterator path::begin() const noexcept {
-        return _Mystr.begin();
+        if (_Mystr.empty()) {
+            return iterator{nullptr}; // equal to end()
+        }
+        
+        if (details::_Has_drive(_Mystr)) { // extract root-name
+            return iterator{this, ::std::wstring_view{_Mystr.c_str(), 2}};
+        } else if (details::_Is_slash(_Mystr[0])) { // extract root-directory
+            return iterator{this, ::std::wstring_view{_Mystr.c_str(), 1}};
+        } else { // extract the first element
+            // Note: When the path doesn't start with a root-name nor root-directory, the first
+            //       element of the path is extracted. In this context, a path element is defined
+            //       as the portion between slashes. For example, in the path "foo\bar\", the elements
+            //       are "foo" and "bar". We skip the first character, as we've already checked it
+            //       for the presence of a slash.
+            const size_t _Slash = details::_Find_first_slash(_Mystr);
+            if (_Slash != ::std::wstring_view::npos) {
+                return iterator{this, ::std::wstring_view{_Mystr.c_str(), _Slash}};
+            } else {
+                return iterator{this, ::std::wstring_view{_Mystr.c_str(), _Mystr.size()}};
+            }
+        }
     }
 
     path::iterator path::end() const noexcept {
-        return _Mystr.end();
+        return iterator{nullptr};
     }
 
     bool operator==(const path& _Left, const path& _Right) noexcept {
@@ -259,6 +279,124 @@ namespace mjfs {
         path _Result = _Left;
         _Result     /= _Right;
         return _Result;
+    }
+
+    path_iterator::path_iterator() noexcept : _Mypath(nullptr), _Myelem(), _Myoff(0) {}
+
+    path_iterator::path_iterator(const path_iterator& _Other)
+        : _Mypath(_Other._Mypath), _Myelem(_Other._Myelem), _Myoff(_Other._Myoff) {}
+
+    path_iterator::path_iterator(path_iterator&& _Other) noexcept
+        : _Mypath(_Other._Mypath), _Myelem(::std::move(_Other._Myelem)), _Myoff(_Other._Myoff) {
+        _Other._Mypath = nullptr; // mark as unusable
+        _Other._Myoff  = 0;
+    }
+
+    path_iterator::path_iterator(const path* const _Path) noexcept : _Mypath(_Path), _Myelem(), _Myoff(0) {}
+
+    path_iterator::path_iterator(const path* const _Path, path&& _Element, const size_t _Off) noexcept
+        : _Mypath(_Path), _Myelem(::std::move(_Element)), _Myoff(_Off) {}
+
+    path_iterator::~path_iterator() noexcept {}
+
+    path_iterator& path_iterator::operator=(const path_iterator& _Other) {
+        if (this != ::std::addressof(_Other)) {
+            _Mypath = _Other._Mypath;
+            _Myelem = _Other._Myelem;
+            _Myoff  = _Other._Myoff;
+        }
+
+        return *this;
+    }
+
+    path_iterator& path_iterator::operator=(path_iterator&& _Other) noexcept {
+        if (this != ::std::addressof(_Other)) {
+            _Mypath        = _Other._Mypath;
+            _Myelem        = ::std::move(_Other._Myelem);
+            _Myoff         = _Other._Myoff;
+            _Other._Mypath = nullptr;
+            _Other._Myoff  = 0;
+        }
+
+        return *this;
+    }
+
+    bool path_iterator::_Has_more_elements() const noexcept {
+        const size_t _Path_size    = _Mypath->native().size();
+        const wchar_t* _First      = _Mypath->c_str() + _Myoff;
+        const wchar_t* const _Last = _First + (_Path_size - _Myoff);
+        for (; _First != _Last; ++_First) {
+            if (!details::_Is_slash(*_First)) { // search for non-slash characters
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    path_iterator& path_iterator::operator++() {
+        if (!_Mypath) {
+            return *this;
+        }
+
+        const ::std::wstring_view _Path_str = _Mypath->native();
+        const ::std::wstring_view _Elem_str = _Myelem.native();
+        const size_t _Path_size             = _Path_str.size();
+        const size_t _Elem_size             = _Elem_str.size();
+        if (details::_Has_drive(_Elem_str) && _Elem_size == 2) { // current element is root-name
+            _Myoff = 2; // skip root-name (fixed length)
+            if (_Path_size > 2 && details::_Is_slash(_Path_str[2])) { // advance to root-directory
+                _Myelem = ::std::wstring_view{_Path_str.data() + _Myoff, 1};
+                return *this;
+            }
+        } else if (details::_Is_slash(_Elem_str[0]) && _Elem_size == 1) { // current element is root-directory
+            ++_Myoff; // skip root-directory (fixed length)
+        } else {
+            _Myoff += _Elem_size; // skip the current element
+        }
+
+        if (_Myoff >= _Path_size || !_Has_more_elements()) { // we reached the end of the path
+            _Mypath = nullptr;
+            _Myoff  = 0;
+            _Myelem.clear();
+            return *this;
+        }
+
+        while (details::_Is_slash(_Path_str[_Myoff])) { // skip optional slashes between elements
+            ++_Myoff;
+        }
+
+        const ::std::wstring_view _Path_substr(_Path_str.data() + _Myoff, _Path_size - _Myoff);
+        const size_t _Slash = details::_Find_first_slash(_Path_substr);
+        if (_Slash != ::std::wstring_view::npos) { // advance to the last element
+            _Myelem = ::std::wstring_view{_Path_substr.data(), _Slash};
+        } else { // advance to the next element
+            _Myelem = _Path_substr;
+        }
+
+        return *this;
+    }
+
+    path_iterator path_iterator::operator++(int) {
+        path_iterator _Temp = *this;
+        ++*this;
+        return _Temp;
+    }
+
+    path_iterator::reference path_iterator::operator*() const noexcept {
+        return _Myelem;
+    }
+
+    path_iterator::pointer path_iterator::operator->() const noexcept {
+        return ::std::addressof(_Myelem);
+    }
+
+    bool operator==(const path_iterator& _Left, const path_iterator& _Right) {
+        return _Left._Myelem == _Right._Myelem && _Left._Myoff == _Right._Myoff;
+    }
+
+    bool operator!=(const path_iterator& _Left, const path_iterator& _Right) {
+        return !(_Left == _Right);
     }
 
     path current_path() {

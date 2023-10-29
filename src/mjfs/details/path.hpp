@@ -20,6 +20,19 @@ namespace mjfs {
             return _Str == L"." || _Str == L"..";
         }
 
+        inline size_t _Find_first_slash(const ::std::wstring_view _Str) noexcept {
+            const wchar_t* const _Data = _Str.data();
+            const wchar_t* _First      = _Data;
+            const wchar_t* const _Last = _First + _Str.size();
+            for (; _First != _Last; ++_First) {
+                if (_Is_slash(*_First)) {
+                    return _First - _Data;
+                }
+            }
+
+            return ::std::wstring_view::npos; // not found
+        }
+
         inline size_t _Find_last_slash(const ::std::wstring_view _Str) noexcept {
             const wchar_t* const _First = _Str.data();
             const wchar_t* _Last        = _First + _Str.size();

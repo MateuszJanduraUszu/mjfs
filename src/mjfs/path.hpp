@@ -24,11 +24,13 @@ namespace mjfs {
     template <class _Source>
     using _Enable_if_valid_path_source_t = ::std::enable_if_t<_Is_valid_path_source<_Source>, int>;
 
+    class path_iterator;
+
     class _MJFS_API path { // filesystem path representation
     public:
         using value_type     = wchar_t;
         using string_type    = ::std::wstring;
-        using const_iterator = string_type::const_iterator;
+        using const_iterator = path_iterator;
         using iterator       = const_iterator;
 
         static constexpr value_type preferred_separator = L'\\';
@@ -204,6 +206,51 @@ namespace mjfs {
     _MJFS_API bool operator==(const path& _Left, const path& _Right) noexcept;
     _MJFS_API bool operator!=(const path& _Left, const path& _Right) noexcept;
     _MJFS_API path operator/(const path& _Left, const path& _Right);
+
+    class _MJFS_API path_iterator { // input iterator for path
+    public:
+        using value_type        = path;
+        using difference_type   = ptrdiff_t;
+        using pointer           = const path*;
+        using reference         = const path&;
+        using iterator_category = ::std::input_iterator_tag;
+
+        path_iterator() noexcept;
+        path_iterator(const path_iterator& _Other);
+        path_iterator(path_iterator&& _Other) noexcept;
+        ~path_iterator() noexcept;
+
+        explicit path_iterator(const path* const _Path) noexcept;
+        explicit path_iterator(const path* const _Path, path&& _Element, const size_t _Off = 0) noexcept;
+
+        path_iterator& operator=(const path_iterator& _Other);
+        path_iterator& operator=(path_iterator&& _Other) noexcept;
+
+        // advances the iterator to the next element
+        path_iterator& operator++();
+
+        // advances the iterator to the next element (performs post-incrementation)
+        path_iterator operator++(int);
+        
+        // returns a reference to the current path element
+        reference operator*() const noexcept;
+
+        // returns a pointer to the current path element
+        pointer operator->() const noexcept;
+
+    private:
+        friend _MJFS_API bool operator==(const path_iterator&, const path_iterator&);
+
+        // checks whether remaining path contains more valid elements
+        bool _Has_more_elements() const noexcept;
+
+        const path* _Mypath; // pointer to the full path
+        path _Myelem; // current path element
+        size_t _Myoff; // current path element's offset
+    };
+
+    _MJFS_API bool operator==(const path_iterator& _Left, const path_iterator& _Right);
+    _MJFS_API bool operator!=(const path_iterator& _Left, const path_iterator& _Right);
 
     _MJFS_API path current_path();
     _MJFS_API bool current_path(const path& _New_path);
