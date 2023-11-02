@@ -77,6 +77,19 @@ namespace mjfs {
         }
     }
 
+    directory_iterator::directory_iterator(const path& _Target, const directory_options)
+        : _Myimpl(::std::make_shared<details::_Dir_iter>(_Target)) {
+        // Note: Directory options have no effect on directory_iterator. The follow_directory_symlink
+        //       applies only to recursive_directory_iterator, and the skip_permission_denied option
+        //       resets the iterator instead of throwing an exception on access denied,
+        //       but since we don't use exceptions, this option also has no effect.
+        if (_Myimpl) {
+            if (!_Myimpl->_Skip_dots()) {
+                _Myimpl.reset();
+            }
+        }
+    }
+
     directory_iterator::~directory_iterator() noexcept {}
 
     bool directory_iterator::operator==(const directory_iterator& _Other) const noexcept {
@@ -90,7 +103,7 @@ namespace mjfs {
     directory_iterator::reference directory_iterator::operator*() const {
 #ifdef _DEBUG
         if (!_Myimpl) {
-            ::std::abort();
+            ::abort();
         }
 #endif // _DEBUG
 
@@ -117,6 +130,91 @@ namespace mjfs {
 
     directory_iterator end(directory_iterator) noexcept {
         return directory_iterator{};
+    }
+
+    recursive_directory_iterator::recursive_directory_iterator() noexcept : _Myimpl(nullptr) {}
+
+    recursive_directory_iterator::recursive_directory_iterator(const path& _Target)
+        : _Myimpl(::std::make_shared<details::_Recursive_dir_iter>(_Target, directory_options::none)) {
+        if (_Myimpl) {
+            if (!_Myimpl->_Skip_dots()) {
+                _Myimpl.reset();
+            }
+        }
+    }
+
+    recursive_directory_iterator::recursive_directory_iterator(
+        const path& _Target, const directory_options _Options)
+        : _Myimpl(::std::make_shared<details::_Recursive_dir_iter>(_Target, _Options)) {
+        if (_Myimpl) {
+            if (!_Myimpl->_Skip_dots()) {
+                _Myimpl.reset();
+            }
+        }
+    }
+
+    recursive_directory_iterator::~recursive_directory_iterator() noexcept {}
+
+    bool recursive_directory_iterator::operator==(const recursive_directory_iterator& _Other) const noexcept {
+        return _Myimpl == _Other._Myimpl;
+    }
+
+    bool recursive_directory_iterator::operator!=(const recursive_directory_iterator& _Other) const noexcept {
+        return _Myimpl != _Other._Myimpl;
+    }
+
+    recursive_directory_iterator::reference recursive_directory_iterator::operator*() const {
+#ifdef _DEBUG
+        if (!_Myimpl) {
+            ::abort();
+        }
+#endif // _DEBUG
+
+        return _Myimpl->_Entry;
+    }
+
+    recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const {
+        return &**this;
+    }
+
+    recursive_directory_iterator& recursive_directory_iterator::operator++() {
+        if (_Myimpl) {
+            if (!_Myimpl->_Advance()) {
+                _Myimpl.reset();
+            }
+        }
+
+        return *this;
+    }
+
+    directory_options recursive_directory_iterator::options() const noexcept {
+        return _Myimpl ? _Myimpl->_Options : directory_options::none;
+    }
+
+    int recursive_directory_iterator::depth() const noexcept {
+        return _Myimpl ? static_cast<int>(_Myimpl->_Stack.size()) : 0;
+    }
+
+    bool recursive_directory_iterator::recursion_pending() const noexcept {
+        return _Myimpl ? _Myimpl->_Recursion_pending : false;
+    }
+
+    void recursive_directory_iterator::disable_recursion_pending() noexcept {
+        if (_Myimpl) {
+            _Myimpl->_Recursion_pending = false;
+        }
+    }
+
+    bool recursive_directory_iterator::pop() noexcept {
+        return _Myimpl ? _Myimpl->_Pop() : false;
+    }
+
+    recursive_directory_iterator begin(recursive_directory_iterator _Iter) noexcept {
+        return _Iter;
+    }
+
+    recursive_directory_iterator end(recursive_directory_iterator) noexcept {
+        return recursive_directory_iterator{};
     }
 
     bool create_directory(const path& _Path) {
