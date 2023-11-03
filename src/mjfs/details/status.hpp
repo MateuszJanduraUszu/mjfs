@@ -12,7 +12,6 @@
 #include <mjfs/directory.hpp>
 #include <mjfs/status.hpp>
 #include <mjfs/tinywin.hpp>
-#include <type_traits>
 
 namespace mjfs {
     namespace details {
@@ -43,8 +42,8 @@ namespace mjfs {
             }
 
             FILE_ATTRIBUTE_TAG_INFO _Info = {0};
-            if (::GetFileInformationByHandleEx(_Guard._Handle, FileAttributeTagInfo,
-                ::std::addressof(_Info), sizeof(FILE_ATTRIBUTE_TAG_INFO)) != 0) {
+            if (::GetFileInformationByHandleEx(
+                _Guard._Handle, FileAttributeTagInfo, &_Info, sizeof(FILE_ATTRIBUTE_TAG_INFO)) != 0) {
                 return static_cast<_File_reparse_tag>(_Info.ReparseTag);
             } else {
                 return _File_reparse_tag::_Unknown;
@@ -55,8 +54,7 @@ namespace mjfs {
             ULARGE_INTEGER _Available;
             ULARGE_INTEGER _Capacity;
             ULARGE_INTEGER _Free;
-            if (::GetDiskFreeSpaceExW(_Disk, ::std::addressof(_Available),
-                ::std::addressof(_Capacity), ::std::addressof(_Free)) == 0) {
+            if (::GetDiskFreeSpaceExW(_Disk, &_Available, &_Capacity, &_Free) == 0) {
                 return false;
             }
 

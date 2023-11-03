@@ -15,8 +15,8 @@ namespace mjfs {
     namespace details {
         inline uint64_t _Tell_file(void* const _Handle) noexcept {
             LARGE_INTEGER _Pos = {0};
-            return ::SetFilePointerEx(_Handle, _Pos, ::std::addressof(_Pos), FILE_CURRENT) != 0
-                ? static_cast<uint64_t>(_Pos.QuadPart) : 0;
+            return ::SetFilePointerEx(
+                _Handle, _Pos, &_Pos, FILE_CURRENT) != 0 ? static_cast<uint64_t>(_Pos.QuadPart) : 0;
         }
 
         inline size_t _Read_file(

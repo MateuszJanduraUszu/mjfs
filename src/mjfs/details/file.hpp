@@ -10,7 +10,6 @@
 #include <mjfs/bitmask.hpp>
 #include <mjfs/file.hpp>
 #include <mjfs/tinywin.hpp>
-#include <type_traits>
 
 namespace mjfs {
     namespace details {
@@ -62,8 +61,8 @@ namespace mjfs {
         inline FILE_BASIC_INFO _Get_file_basic_info(void* const _Handle) noexcept {
             FILE_BASIC_INFO _Info = {0};
             _Info.FileAttributes  = INVALID_FILE_ATTRIBUTES;
-            return ::GetFileInformationByHandleEx(_Handle, FileBasicInfo, ::std::addressof(_Info),
-                sizeof(FILE_BASIC_INFO)) != 0 ? _Info : FILE_BASIC_INFO{};
+            return ::GetFileInformationByHandleEx(
+                _Handle, FileBasicInfo, &_Info, sizeof(FILE_BASIC_INFO)) != 0 ? _Info : FILE_BASIC_INFO{};
         }
 
         inline file_attribute _Get_file_attributes(void* const _Handle) noexcept {
@@ -76,8 +75,7 @@ namespace mjfs {
         
         template <FILE_INFO_BY_HANDLE_CLASS _Class, class _Ty>
         inline bool _Set_file_information(void* const _Handle, _Ty& _Info) noexcept {
-            return ::SetFileInformationByHandle(
-                _Handle, _Class, ::std::addressof(_Info), sizeof(_Ty)) != 0;
+            return ::SetFileInformationByHandle(_Handle, _Class, &_Info, sizeof(_Ty)) != 0;
         }
 
         inline bool _Set_file_attributes(
