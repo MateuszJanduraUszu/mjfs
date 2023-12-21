@@ -7,19 +7,19 @@
 #ifndef _MJFS_PATH_HPP_
 #define _MJFS_PATH_HPP_
 #include <mjfs/api.hpp>
-#include <string>
-#include <string_view>
+#include <mjstr/string.hpp>
+#include <mjstr/string_view.hpp>
 #include <type_traits>
 
-namespace mjfs {
+namespace mjx {
     template <class _Source>
     inline constexpr bool _Is_valid_path_source = false;
 
     template <>
-    inline constexpr bool _Is_valid_path_source<::std::wstring> = true;
+    inline constexpr bool _Is_valid_path_source<unicode_string> = true;
 
     template <>
-    inline constexpr bool _Is_valid_path_source<::std::wstring_view> = true;
+    inline constexpr bool _Is_valid_path_source<unicode_string_view> = true;
 
     template <class _Source>
     using _Enable_if_valid_path_source_t = ::std::enable_if_t<_Is_valid_path_source<_Source>, int>;
@@ -29,7 +29,7 @@ namespace mjfs {
     class _MJFS_API path { // filesystem path representation
     public:
         using value_type     = wchar_t;
-        using string_type    = ::std::wstring;
+        using string_type    = unicode_string;
         using const_iterator = path_iterator;
         using iterator       = const_iterator;
 
@@ -63,7 +63,7 @@ namespace mjfs {
             return *this;
         }
 
-        // returns the native version of the path (standard string)
+        // returns the native version of the path (normal string)
         operator string_type() const;
 
         // assigns a new path
@@ -89,7 +89,7 @@ namespace mjfs {
 
         path& operator+=(const path& _Other);
         path& operator+=(const string_type& _Str);
-        path& operator+=(const ::std::wstring_view _Str);
+        path& operator+=(const unicode_string_view _Str);
         path& operator+=(const value_type* const _Str);
         path& operator+=(const value_type _Ch);
 
@@ -112,7 +112,7 @@ namespace mjfs {
         path& make_preferred() noexcept;
 
         // removes filename path component
-        path& remove_filename() noexcept;
+        path& remove_filename();
 
         // replaces the last path component with another path
         path& replace_filename(const path& _Replacement);
@@ -133,28 +133,28 @@ namespace mjfs {
         bool empty() const noexcept;
 
         // returns the root-name of the path, if present
-        path root_name() const;
+        path root_name() const noexcept;
 
         // returns the root directory of the path, if present
-        path root_directory() const;
+        path root_directory() const noexcept;
 
         // returns the root path of the path, if present
-        path root_path() const;
+        path root_path() const noexcept;
 
         // returns path relative to the root path
-        path relative_path() const;
+        path relative_path() const noexcept;
 
         // returns the path of the parent path
-        path parent_path() const;
+        path parent_path() const noexcept;
 
         // returns the filename path component
-        path filename() const;
+        path filename() const noexcept;
 
         // returns the stem path component (filename without the final extension)
-        path stem() const;
+        path stem() const noexcept;
 
         // returns the file extension path component
-        path extension() const;
+        path extension() const noexcept;
 
         // checks if the path has the root-name
         bool has_root_name() const noexcept;
@@ -187,10 +187,10 @@ namespace mjfs {
         bool is_relative() const noexcept;
 
         // returns an iterator to the beginning of the path
-        iterator begin() const noexcept;
+        iterator begin() const;
 
         // returns an iterator to the end of the path
-        iterator end() const noexcept;
+        iterator end() const;
 
     private:
         // applies the specified format
@@ -199,12 +199,11 @@ namespace mjfs {
         // replaces the specifed slashes with a replacement
         void _Replace_slashes_with(const wchar_t _Slash, const wchar_t _Replacement) noexcept;
 
-#pragma warning(suppress : 4251) // C4251: std::wstring needs to have a dll-interface
         string_type _Mystr;
     };
 
-    _MJFS_API bool operator==(const path& _Left, const path& _Right) noexcept;
-    _MJFS_API bool operator!=(const path& _Left, const path& _Right) noexcept;
+    _MJFS_API bool operator==(const path& _Left, const path& _Right);
+    _MJFS_API bool operator!=(const path& _Left, const path& _Right);
     _MJFS_API path operator/(const path& _Left, const path& _Right);
 
     class _MJFS_API path_iterator { // input iterator for path
@@ -254,6 +253,6 @@ namespace mjfs {
 
     _MJFS_API path current_path();
     _MJFS_API bool current_path(const path& _New_path);
-} // namespace mjfs
+} // namespace mjx
 
 #endif // _MJFS_PATH_HPP_

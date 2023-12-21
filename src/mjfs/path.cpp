@@ -3,10 +3,10 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <mjfs/details/path.hpp>
+#include <mjfs/impl/path.hpp>
 #include <mjfs/path.hpp>
 
-namespace mjfs {
+namespace mjx {
     path::path() noexcept : _Mystr() {}
 
     path::path(const path& _Other) : _Mystr(_Other._Mystr) {}
@@ -82,7 +82,7 @@ namespace mjfs {
             return *this;
         }
 
-        if (!details::_Is_slash(_Mystr.back()) && !details::_Is_slash(_Other._Mystr.front())) {
+        if (!mjfs_impl::_Is_slash(_Mystr.back()) && !mjfs_impl::_Is_slash(_Other._Mystr.front())) {
             _Mystr.push_back(preferred_separator);
         }
 
@@ -100,7 +100,7 @@ namespace mjfs {
         return *this;
     }
 
-    path& path::operator+=(const ::std::wstring_view _Str) {
+    path& path::operator+=(const unicode_string_view _Str) {
         _Mystr += _Str;
         return *this;
     }
@@ -124,12 +124,10 @@ namespace mjfs {
         return *this;
     }
 
-    path& path::remove_filename() noexcept {
-        const details::_Path_segment& _Filename = details::_Find_filename(_Mystr);
+    path& path::remove_filename() {
+        const mjfs_impl::_Path_segment& _Filename = mjfs_impl::_Find_filename(_Mystr);
         if (_Filename._Found()) {
-            // Note: Use std::wstring::erase(const_iterator, const_iterator) to maintain the
-            //       noexcept specifier, as this function throws nothing and is marked noexcept.
-            _Mystr.erase(_Mystr.begin() + _Filename._Offset, _Mystr.end());
+            _Mystr.erase(_Filename._Offset);
         }
 
         return *this;
@@ -141,11 +139,9 @@ namespace mjfs {
     }
 
     path& path::replace_extension(const path& _Replacement) {
-        const size_t _Length = details::_Get_extension(_Mystr).size();
+        const size_t _Length = mjfs_impl::_Get_extension(_Mystr).size();
         if (_Length > 0) {
-            // Note: Use std::wstring::erase(const_iterator, const_iterator) to maintain the
-            //       noexcept specifier, as this function throws nothing and is marked noexcept.
-            _Mystr.erase(_Mystr.begin() + (_Mystr.size() - _Length), _Mystr.end());
+            _Mystr.erase(_Mystr.size() - _Length);
         }
 
         return *this /= _Replacement;
@@ -167,111 +163,111 @@ namespace mjfs {
         return _Mystr.empty();
     }
 
-    path path::root_name() const {
-        return details::_Get_root_name(_Mystr);
+    path path::root_name() const noexcept {
+        return mjfs_impl::_Get_root_name(_Mystr);
     }
 
-    path path::root_directory() const {
-        return details::_Get_root_directory(_Mystr);
+    path path::root_directory() const noexcept {
+        return mjfs_impl::_Get_root_directory(_Mystr);
     }
 
-    path path::root_path() const {
-        return details::_Get_root_path(_Mystr);
+    path path::root_path() const noexcept {
+        return mjfs_impl::_Get_root_path(_Mystr);
     }
 
-    path path::relative_path() const {
-        return details::_Get_relative_path(_Mystr);
+    path path::relative_path() const noexcept {
+        return mjfs_impl::_Get_relative_path(_Mystr);
     }
 
-    path path::parent_path() const {
-        return details::_Get_parent_path(_Mystr);
+    path path::parent_path() const noexcept {
+        return mjfs_impl::_Get_parent_path(_Mystr);
     }
 
-    path path::filename() const {
-        return details::_Get_filename(_Mystr);
+    path path::filename() const noexcept {
+        return mjfs_impl::_Get_filename(_Mystr);
     }
 
-    path path::stem() const {
-        return details::_Get_stem(_Mystr);
+    path path::stem() const noexcept {
+        return mjfs_impl::_Get_stem(_Mystr);
     }
 
-    path path::extension() const {
-        return details::_Get_extension(_Mystr);
+    path path::extension() const noexcept {
+        return mjfs_impl::_Get_extension(_Mystr);
     }
 
     bool path::has_root_name() const noexcept {
-        return !details::_Get_root_name(_Mystr).empty();
+        return !mjfs_impl::_Get_root_name(_Mystr).empty();
     }
 
     bool path::has_root_directory() const noexcept {
-        return !details::_Get_root_directory(_Mystr).empty();
+        return !mjfs_impl::_Get_root_directory(_Mystr).empty();
     }
 
     bool path::has_root_path() const noexcept {
-        return !details::_Get_root_path(_Mystr).empty();
+        return !mjfs_impl::_Get_root_path(_Mystr).empty();
     }
 
     bool path::has_relative_path() const noexcept {
-        return !details::_Get_relative_path(_Mystr).empty();
+        return !mjfs_impl::_Get_relative_path(_Mystr).empty();
     }
 
     bool path::has_parent_path() const noexcept {
-        return !details::_Get_parent_path(_Mystr).empty();
+        return !mjfs_impl::_Get_parent_path(_Mystr).empty();
     }
 
     bool path::has_filename() const noexcept {
-        return !details::_Get_filename(_Mystr).empty();
+        return !mjfs_impl::_Get_filename(_Mystr).empty();
     }
 
     bool path::has_stem() const noexcept {
-        return !details::_Get_stem(_Mystr).empty();
+        return !mjfs_impl::_Get_stem(_Mystr).empty();
     }
 
     bool path::has_extension() const noexcept {
-        return !details::_Get_extension(_Mystr).empty();
+        return !mjfs_impl::_Get_extension(_Mystr).empty();
     }
 
     bool path::is_absolute() const noexcept {
-        return details::_Has_drive_and_slash(_Mystr);
+        return mjfs_impl::_Has_drive_and_slash(_Mystr);
     }
 
     bool path::is_relative() const noexcept {
         return !is_absolute();
     }
 
-    path::iterator path::begin() const noexcept {
+    path::iterator path::begin() const {
         if (_Mystr.empty()) {
             return iterator{nullptr}; // equal to end()
         }
         
-        if (details::_Has_drive(_Mystr)) { // extract root-name
-            return iterator{this, ::std::wstring_view{_Mystr.c_str(), 2}};
-        } else if (details::_Is_slash(_Mystr[0])) { // extract root-directory
-            return iterator{this, ::std::wstring_view{_Mystr.c_str(), 1}};
+        if (mjfs_impl::_Has_drive(_Mystr)) { // extract root-name
+            return iterator{this, _Mystr.view().substr(0, 2)};
+        } else if (mjfs_impl::_Is_slash(_Mystr[0])) { // extract root-directory
+            return iterator{this, _Mystr.view().substr(0, 1)};
         } else { // extract the first element
             // Note: When the path doesn't start with a root-name nor root-directory, the first
             //       element of the path is extracted. In this context, a path element is defined
             //       as the portion between slashes. For example, in the path "foo\bar\", the elements
             //       are "foo" and "bar". We skip the first character, as we've already checked it
             //       for the presence of a slash.
-            const size_t _Slash = details::_Find_first_slash(_Mystr);
-            if (_Slash != ::std::wstring_view::npos) {
-                return iterator{this, ::std::wstring_view{_Mystr.c_str(), _Slash}};
+            const size_t _Slash = mjfs_impl::_Find_first_slash(_Mystr);
+            if (_Slash != unicode_string_view::npos) {
+                return iterator{this, _Mystr.view().substr(0, _Slash)};
             } else {
-                return iterator{this, ::std::wstring_view{_Mystr.c_str(), _Mystr.size()}};
+                return iterator{this, _Mystr.view()};
             }
         }
     }
 
-    path::iterator path::end() const noexcept {
+    path::iterator path::end() const {
         return iterator{nullptr};
     }
 
-    bool operator==(const path& _Left, const path& _Right) noexcept {
+    bool operator==(const path& _Left, const path& _Right) {
         return _Left.native() == _Right.native();
     }
 
-    bool operator!=(const path& _Left, const path& _Right) noexcept {
+    bool operator!=(const path& _Left, const path& _Right) {
         return _Left.native() != _Right.native();
     }
 
@@ -326,7 +322,7 @@ namespace mjfs {
         const wchar_t* _First      = _Mypath->c_str() + _Myoff;
         const wchar_t* const _Last = _First + (_Path_size - _Myoff);
         for (; _First != _Last; ++_First) {
-            if (!details::_Is_slash(*_First)) { // search for non-slash characters
+            if (!mjfs_impl::_Is_slash(*_First)) { // search for non-slash characters
                 return true;
             }
         }
@@ -339,17 +335,18 @@ namespace mjfs {
             return *this;
         }
 
-        const ::std::wstring_view _Path_str = _Mypath->native();
-        const ::std::wstring_view _Elem_str = _Myelem.native();
+        const unicode_string_view _Path_str = _Mypath->native().view();
+        const unicode_string_view _Elem_str = _Myelem.native().view();
         const size_t _Path_size             = _Path_str.size();
         const size_t _Elem_size             = _Elem_str.size();
-        if (details::_Has_drive(_Elem_str) && _Elem_size == 2) { // current element is root-name
+        if (mjfs_impl::_Has_drive(_Elem_str) && _Elem_size == 2) { // current element is root-name
             _Myoff = 2; // skip root-name (fixed length)
-            if (_Path_size > 2 && details::_Is_slash(_Path_str[2])) { // advance to root-directory
-                _Myelem = ::std::wstring_view{_Path_str.data() + _Myoff, 1};
+            if (_Path_size > 2 && mjfs_impl::_Is_slash(_Path_str[2])) { // advance to root-directory
+                _Myelem = _Path_str.substr(_Myoff, 1);
                 return *this;
             }
-        } else if (details::_Is_slash(_Elem_str[0]) && _Elem_size == 1) { // current element is root-directory
+        } else if (mjfs_impl::_Is_slash(_Elem_str[0])
+            && _Elem_size == 1) { // current element is root-directory
             ++_Myoff; // skip root-directory (fixed length)
         } else {
             _Myoff += _Elem_size; // skip the current element
@@ -362,14 +359,14 @@ namespace mjfs {
             return *this;
         }
 
-        while (details::_Is_slash(_Path_str[_Myoff])) { // skip optional slashes between elements
+        while (mjfs_impl::_Is_slash(_Path_str[_Myoff])) { // skip optional slashes between elements
             ++_Myoff;
         }
 
-        const ::std::wstring_view _Path_substr(_Path_str.data() + _Myoff, _Path_size - _Myoff);
-        const size_t _Slash = details::_Find_first_slash(_Path_substr);
-        if (_Slash != ::std::wstring_view::npos) { // advance to the last element
-            _Myelem = ::std::wstring_view{_Path_substr.data(), _Slash};
+        const unicode_string_view _Path_substr = _Path_str.substr(_Myoff, _Path_size - _Myoff);
+        const size_t _Slash                    = mjfs_impl::_Find_first_slash(_Path_substr);
+        if (_Slash != unicode_string_view::npos) { // advance to the last element
+            _Myelem = _Path_substr.substr(0, _Slash);
         } else { // advance to the next element
             _Myelem = _Path_substr;
         }
@@ -400,12 +397,12 @@ namespace mjfs {
     }
 
     path current_path() {
-        const size_t _Buf_size = details::_Get_current_path_length();
+        const size_t _Buf_size = mjfs_impl::_Get_current_path_length();
         path::string_type _Buf(_Buf_size, L'\0');
-        return details::_Get_current_path(_Buf.data(), _Buf_size) ? path{::std::move(_Buf)} : path{};
+        return mjfs_impl::_Get_current_path(_Buf.data(), _Buf_size) ? path{::std::move(_Buf)} : path{};
     }
 
     bool current_path(const path& _New_path) {
         return ::SetCurrentDirectoryW(_New_path.c_str()) != 0;
     }
-} // namespace mjfs
+} // namespace mjx
