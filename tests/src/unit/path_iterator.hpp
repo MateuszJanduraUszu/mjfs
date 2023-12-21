@@ -10,7 +10,7 @@
 #include <mjfs/path.hpp>
 #include <vector>
 
-namespace mjfs {
+namespace mjx {
     namespace test {
         TEST(path_iterator, absolute_path) {
             const path _Path(LR"(C:\foo\bar\meow)");
@@ -78,6 +78,6 @@ namespace mjfs {
             EXPECT_EQ(_Elements, _Expected_elements);
         }
     } // namespace test
-} // namespace mjfs
+} // namespace mjx
 
 #endif // _MJFS_TEST_UNIT_PATH_ITERATOR_HPP_
