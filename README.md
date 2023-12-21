@@ -25,13 +25,13 @@ It is written in C++17.
 To integrate MJFS into your project, you can include the appropriate header files
 based on your requirements:
 
-* **<mjfs/api.hpp>**: This header contains export/import macro, don't include it directly.
-* **<mjfs/bitmask.hpp>**: This header contains bitmask operations and utilities.
-* **<mjfs/directory.hpp>**: This header contains directory utilities.
-* **<mjfs/file.hpp>**: This header contains file utilities.
-* **<mjfs/file_stream.hpp>**: This header contains file stream utilities.
-* **<mjfs/path>**: This header contains filesystem path utilities.
-* **<mjfs/status.hpp>**: This header contains filesystem object status utilities.
+* **<mjfs/api.hpp>**: Export/import macro, don't include it directly.
+* **<mjfs/bitmask.hpp>**: Bitmask operations and utilities.
+* **<mjfs/directory.hpp>**: Directory utilities.
+* **<mjfs/file.hpp>**: `file` class.
+* **<mjfs/file_stream.hpp>**: `file_stream` class.
+* **<mjfs/path>**: Filesystem path utilities.
+* **<mjfs/status.hpp>**: Filesystem object status utilities.
 
 ## Compatibility
 
@@ -46,6 +46,6 @@ feel free to reach out. You can reach me through the `Issues` section or email
 
 ## License
 
-Copyright © Mateusz Jandura.
+Copyright Â© Mateusz Jandura.
 
 SPDX-License-Identifier: Apache-2.0
