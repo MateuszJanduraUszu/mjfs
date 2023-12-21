@@ -11,7 +11,7 @@
 #include <mjfs/bitmask.hpp>
 #include <mjfs/path.hpp>
 
-namespace mjfs {
+namespace mjx {
     enum class file_access : unsigned long {
         none    = 0,
         read    = 0x8000'0000, // GENERIC_READ
@@ -74,7 +74,7 @@ namespace mjfs {
 
         file& operator=(file&& _Other) noexcept;
 
-        file(const file&) = delete;
+        file(const file&)            = delete;
         file& operator=(const file&) = delete;
 
         // checks if the file is open
@@ -123,9 +123,9 @@ namespace mjfs {
     _MJFS_API bool create_file(const path& _Path, file* const _File = nullptr);
 
     _MJFS_API bool delete_file(const path& _Target);
-    _MJFS_API bool delete_file(file& _File) noexcept;
+    _MJFS_API bool delete_file(file& _File);
 
     _MJFS_API bool rename(const path& _Target, const path& _New_name);
-} // namespace mjfs
+} // namespace mjx
 
 #endif // _MJFS_FILE_HPP_
