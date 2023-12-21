@@ -5,14 +5,16 @@
 
 #include <cstdlib>
 #include <mjfs/bitmask.hpp>
-#include <mjfs/details/directory.hpp>
-#include <mjfs/details/path.hpp>
-#include <mjfs/details/status.hpp>
 #include <mjfs/directory.hpp>
+#include <mjfs/impl/directory.hpp>
+#include <mjfs/impl/path.hpp>
+#include <mjfs/impl/status.hpp>
+#include <mjfs/impl/utils.hpp>
+#include <mjmem/object_allocator.hpp>
 
-namespace mjfs {
+namespace mjx {
     directory_entry::directory_entry(const path& _Target)
-        : _Myattr(details::_Get_file_attributes(_Target.c_str())), _Mypath(_Target) {}
+        : _Myattr(mjfs_impl::_Get_file_attributes(_Target.c_str())), _Mypath(_Target) {}
 
     void directory_entry::assign(const path& _New_target) {
         if (_New_target != _Mypath) {
@@ -29,7 +31,7 @@ namespace mjfs {
     }
 
     void directory_entry::refresh() noexcept {
-        _Myattr = details::_Get_file_attributes(_Mypath.c_str());
+        _Myattr = mjfs_impl::_Get_file_attributes(_Mypath.c_str());
     }
 
     const path& directory_entry::absolute_path() const noexcept {
@@ -55,7 +57,7 @@ namespace mjfs {
             return false;
         }
 
-        return details::_Get_reparse_tag(_Mypath.c_str()) == details::_File_reparse_tag::_Symlink;
+        return mjfs_impl::_Get_reparse_tag(_Mypath.c_str()) == mjfs_impl::_File_reparse_tag::_Symlink;
     }
 
     bool directory_entry::is_junction() const noexcept {
@@ -63,30 +65,22 @@ namespace mjfs {
             return false;
         }
 
-        return details::_Get_reparse_tag(_Mypath.c_str()) == details::_File_reparse_tag::_Mount_point;
+        return mjfs_impl::_Get_reparse_tag(_Mypath.c_str()) == mjfs_impl::_File_reparse_tag::_Mount_point;
     }
 
     directory_iterator::directory_iterator() noexcept : _Myimpl(nullptr) {}
 
     directory_iterator::directory_iterator(const path& _Target)
-        : _Myimpl(::std::make_shared<details::_Dir_iter>(_Target)) {
-        if (_Myimpl) {
-            if (!_Myimpl->_Skip_dots()) {
-                _Myimpl.reset();
-            }
+        : _Myimpl(::mjx::create_object<mjfs_impl::_Dir_iter>(_Target)) {
+        if (!_Myimpl->_Skip_dots()) {
+            _Myimpl.reset();
         }
     }
 
     directory_iterator::directory_iterator(const path& _Target, const directory_options)
-        : _Myimpl(::std::make_shared<details::_Dir_iter>(_Target)) {
-        // Note: Directory options have no effect on directory_iterator. The follow_directory_symlink
-        //       applies only to recursive_directory_iterator, and the skip_permission_denied option
-        //       resets the iterator instead of throwing an exception on access denied,
-        //       but since we don't use exceptions, this option also has no effect.
-        if (_Myimpl) {
-            if (!_Myimpl->_Skip_dots()) {
-                _Myimpl.reset();
-            }
+        : _Myimpl(::mjx::create_object<mjfs_impl::_Dir_iter>(_Target)) {
+        if (!_Myimpl->_Skip_dots()) {
+            _Myimpl.reset();
         }
     }
 
@@ -100,25 +94,23 @@ namespace mjfs {
         return _Myimpl != _Other._Myimpl;
     }
 
-    directory_iterator::reference directory_iterator::operator*() const {
+    directory_iterator::reference directory_iterator::operator*() const noexcept {
 #ifdef _DEBUG
-        if (!_Myimpl) {
-            ::abort();
-        }
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to dereference invalid iterator");
 #endif // _DEBUG
-
         return _Myimpl->_Entry;
     }
 
-    directory_iterator::pointer directory_iterator::operator->() const {
+    directory_iterator::pointer directory_iterator::operator->() const noexcept {
         return &**this;
     }
 
     directory_iterator& directory_iterator::operator++() {
-        if (_Myimpl) {
-            if (!_Myimpl->_Advance()) {
-                _Myimpl.reset();
-            }
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to advance invalid iterator");
+#endif // _DEBUG
+        if (!_Myimpl->_Advance()) {
+            _Myimpl.reset();
         }
 
         return *this;
@@ -135,21 +127,17 @@ namespace mjfs {
     recursive_directory_iterator::recursive_directory_iterator() noexcept : _Myimpl(nullptr) {}
 
     recursive_directory_iterator::recursive_directory_iterator(const path& _Target)
-        : _Myimpl(::std::make_shared<details::_Recursive_dir_iter>(_Target, directory_options::none)) {
-        if (_Myimpl) {
-            if (!_Myimpl->_Skip_dots()) {
-                _Myimpl.reset();
-            }
+        : _Myimpl(::mjx::create_object<mjfs_impl::_Recursive_dir_iter>(_Target, directory_options::none)) {
+        if (!_Myimpl->_Skip_dots()) {
+            _Myimpl.reset();
         }
     }
 
     recursive_directory_iterator::recursive_directory_iterator(
         const path& _Target, const directory_options _Options)
-        : _Myimpl(::std::make_shared<details::_Recursive_dir_iter>(_Target, _Options)) {
-        if (_Myimpl) {
-            if (!_Myimpl->_Skip_dots()) {
-                _Myimpl.reset();
-            }
+        : _Myimpl(::mjx::create_object<mjfs_impl::_Recursive_dir_iter>(_Target, _Options)) {
+        if (!_Myimpl->_Skip_dots()) {
+            _Myimpl.reset();
         }
     }
 
@@ -163,50 +151,61 @@ namespace mjfs {
         return _Myimpl != _Other._Myimpl;
     }
 
-    recursive_directory_iterator::reference recursive_directory_iterator::operator*() const {
+    recursive_directory_iterator::reference recursive_directory_iterator::operator*() const noexcept {
 #ifdef _DEBUG
-        if (!_Myimpl) {
-            ::abort();
-        }
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to dereference invalid iterator");
 #endif // _DEBUG
-
         return _Myimpl->_Entry;
     }
 
-    recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const {
+    recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const noexcept {
         return &**this;
     }
 
     recursive_directory_iterator& recursive_directory_iterator::operator++() {
-        if (_Myimpl) {
-            if (!_Myimpl->_Advance()) {
-                _Myimpl.reset();
-            }
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to advance invalid iterator");
+#endif // _DEBUG
+        if (!_Myimpl->_Advance()) {
+            _Myimpl.reset();
         }
 
         return *this;
     }
 
     directory_options recursive_directory_iterator::options() const noexcept {
-        return _Myimpl ? _Myimpl->_Options : directory_options::none;
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
+#endif // _DEBUG
+        return _Myimpl->_Options;
     }
 
     int recursive_directory_iterator::depth() const noexcept {
-        return _Myimpl ? static_cast<int>(_Myimpl->_Stack.size()) : 0;
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
+#endif // _DEBUG
+        return static_cast<int>(_Myimpl->_Stack.size());
     }
 
     bool recursive_directory_iterator::recursion_pending() const noexcept {
-        return _Myimpl ? _Myimpl->_Recursion_pending : false;
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
+#endif // _DEBUG
+        return _Myimpl->_Recursion_pending;
     }
 
     void recursive_directory_iterator::disable_recursion_pending() noexcept {
-        if (_Myimpl) {
-            _Myimpl->_Recursion_pending = false;
-        }
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
+#endif // _DEBUG
+        _Myimpl->_Recursion_pending = false;
     }
 
-    bool recursive_directory_iterator::pop() noexcept {
-        return _Myimpl ? _Myimpl->_Pop() : false;
+    void recursive_directory_iterator::pop() {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
+#endif // _DEBUG
+        _Myimpl->_Pop();
     }
 
     recursive_directory_iterator begin(recursive_directory_iterator _Iter) noexcept {
@@ -224,4 +223,4 @@ namespace mjfs {
     bool remove_directory(const path& _Target) {
         return ::RemoveDirectoryW(_Target.c_str()) != 0;
     }
-} // namespace mjfs
+} // namespace mjx

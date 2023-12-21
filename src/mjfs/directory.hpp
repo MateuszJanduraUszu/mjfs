@@ -11,12 +11,12 @@
 #include <mjfs/file.hpp>
 #include <mjfs/path.hpp>
 
-namespace mjfs {
-    namespace details {
+namespace mjx {
+    namespace mjfs_impl {
         class _Dir_iter_base;
         class _Dir_iter;
         class _Recursive_dir_iter;
-    } // namespace details
+    } // namespace mjfs_impl
 
     enum class directory_options : unsigned char {
         none                     = 0x00,
@@ -66,7 +66,7 @@ namespace mjfs {
         bool is_junction() const noexcept;
 
     private:
-        friend details::_Dir_iter_base;
+        friend mjfs_impl::_Dir_iter_base;
 
         file_attribute _Myattr = file_attribute::none;
         path _Mypath;
@@ -99,17 +99,17 @@ namespace mjfs {
         bool operator!=(const directory_iterator& _Other) const noexcept;
 
         // returns a reference to the current directory entry
-        reference operator*() const;
+        reference operator*() const noexcept;
 
         // returns a pointer to the current directory entry
-        pointer operator->() const;
+        pointer operator->() const noexcept;
 
         // advances the iterator to the next entry
         directory_iterator& operator++();
 
     private:
 #pragma warning(suppress : 4251) // C4251: _Dir_iter needs to have dll-interface
-        ::std::shared_ptr<details::_Dir_iter> _Myimpl;
+        ::std::shared_ptr<mjfs_impl::_Dir_iter> _Myimpl;
     };
 
     _MJFS_API directory_iterator begin(directory_iterator _Iter) noexcept;
@@ -142,10 +142,10 @@ namespace mjfs {
         bool operator!=(const recursive_directory_iterator& _Other) const noexcept;
 
         // returns a reference to the current directory entry
-        reference operator*() const;
+        reference operator*() const noexcept;
 
         // returns a pointer to the current directory entry
-        pointer operator->() const;
+        pointer operator->() const noexcept;
 
         // advances the iterator to the next entry
         recursive_directory_iterator& operator++();
@@ -163,11 +163,11 @@ namespace mjfs {
         void disable_recursion_pending() noexcept;
 
         // moves the iterator one level up in the directory hierarchy
-        bool pop() noexcept;
+        void pop();
 
     private:
 #pragma warning(suppress : 4251) // C4251: _Recursive_dir_iter needs to have dll-interface
-        ::std::shared_ptr<details::_Recursive_dir_iter> _Myimpl;
+        ::std::shared_ptr<mjfs_impl::_Recursive_dir_iter> _Myimpl;
     };
 
     _MJFS_API recursive_directory_iterator begin(recursive_directory_iterator _Iter) noexcept;
@@ -175,6 +175,6 @@ namespace mjfs {
 
     _MJFS_API bool create_directory(const path& _Path);
     _MJFS_API bool remove_directory(const path& _Target);
-} // namespace mjfs
+} // namespace mjx
 
 #endif // _MJFS_DIRECTORY_HPP_
