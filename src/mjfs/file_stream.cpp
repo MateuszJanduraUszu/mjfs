@@ -3,11 +3,11 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <mjfs/details/file_stream.hpp>
 #include <mjfs/file_stream.hpp>
+#include <mjfs/impl/file_stream.hpp>
 #include <type_traits>
 
-namespace mjfs {
+namespace mjx {
     file_stream::file_stream() noexcept : _Myfile(nullptr) {}
 
     file_stream::file_stream(file_stream&& _Other) noexcept : _Myfile(_Other._Myfile) {
@@ -40,15 +40,15 @@ namespace mjfs {
     }
 
     file_stream::pos_type file_stream::tell() const noexcept {
-        return is_open() ? details::_Tell_file(_Myfile->native_handle()) : false;
+        return is_open() ? mjfs_impl::_Tell_file(_Myfile->native_handle()) : false;
     }
 
     bool file_stream::seek(const pos_type _New_pos) noexcept {
-        return is_open() ? details::_Seek_file(_Myfile->native_handle(), _New_pos) : false;
+        return is_open() ? mjfs_impl::_Seek_file(_Myfile->native_handle(), _New_pos) : false;
     }
 
     bool file_stream::seek_to_end() noexcept {
-        return is_open() ? details::_Seek_file_to_end(_Myfile->native_handle()) : false;
+        return is_open() ? mjfs_impl::_Seek_file_to_end(_Myfile->native_handle()) : false;
     }
 
     bool file_stream::move(const off_type _Off, const move_direction _Direction) noexcept {
@@ -60,10 +60,10 @@ namespace mjfs {
             return true;
         }
 
-        const pos_type _Old_pos = details::_Tell_file(_Myfile->native_handle());
+        const pos_type _Old_pos = mjfs_impl::_Tell_file(_Myfile->native_handle());
         const pos_type _New_pos = _Direction == move_direction::backward
             ? _Old_pos - _Off : _Old_pos + _Off;
-        return details::_Seek_file(_Myfile->native_handle(), _New_pos);
+        return mjfs_impl::_Seek_file(_Myfile->native_handle(), _New_pos);
     }
 
     file_stream::int_type file_stream::read(char_type* const _Buf, const int_type _Count) noexcept {
@@ -75,7 +75,11 @@ namespace mjfs {
             return 0;
         }
 
-        return details::_Read_file(_Myfile->native_handle(), _Buf, _Count);
+        return mjfs_impl::_Read_file(_Myfile->native_handle(), _Buf, _Count);
+    }
+
+    file_stream::int_type file_stream::read(byte_string& _Buf) noexcept {
+        return read(_Buf.data(), _Buf.size());
     }
 
     bool file_stream::write(const char_type* const _Data, const int_type _Count) noexcept {
@@ -91,10 +95,14 @@ namespace mjfs {
             return false;
         }
 
-        return details::_Write_file(_Myfile->native_handle(), _Data, _Count);
+        return mjfs_impl::_Write_file(_Myfile->native_handle(), _Data, _Count);
+    }
+
+    bool file_stream::write(const byte_string_view _Data) noexcept {
+        return write(_Data.data(), _Data.size());
     }
 
     bool file_stream::flush() noexcept {
         return is_open() ? ::FlushFileBuffers(_Myfile->native_handle()) != 0 : false;
     }
-} // namespace mjfs
+} // namespace mjx
