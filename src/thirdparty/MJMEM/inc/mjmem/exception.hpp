@@ -18,15 +18,6 @@ namespace mjx {
         __declspec(noreturn) static void raise();
     };
 
-    class _MJMEM_API pool_exhausted {
-    public:
-        pool_exhausted() noexcept;
-        ~pool_exhausted() noexcept;
-
-        // raises pool exhausted exception
-        __declspec(noreturn) static void raise();
-    };
-
     class _MJMEM_API allocation_limit_exceeded {
     public:
         allocation_limit_exceeded() noexcept;

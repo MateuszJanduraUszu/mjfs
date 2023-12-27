@@ -215,8 +215,8 @@ namespace mjx {
         const_iterator end() const noexcept;
 
         // accesses the specified character with bounds checking
-        reference at(const size_type _Idx) noexcept;
-        const_reference at(const size_type _Idx) const noexcept;
+        reference at(const size_type _Idx);
+        const_reference at(const size_type _Idx) const;
 
         // accesses the first character
         reference front() noexcept;
@@ -267,7 +267,7 @@ namespace mjx {
         void expand(const size_type _Count, const value_type _Ch = value_type{});
 
         // decreases the number of characters stored
-        void shrink(const size_type _Count);
+        void shrink(const size_type _Count) noexcept;
 
         // reduces memory usage by freeing unused memory
         void shrink_to_fit();

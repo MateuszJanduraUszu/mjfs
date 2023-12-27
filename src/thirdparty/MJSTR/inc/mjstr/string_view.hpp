@@ -130,7 +130,7 @@ namespace mjx {
         const_iterator end() const noexcept;
 
         // accesses the specified character with bounds checking
-        const_reference at(const size_type _Idx) const noexcept;
+        const_reference at(const size_type _Idx) const;
 
         // accesses the first character
         const_reference front() const noexcept;
