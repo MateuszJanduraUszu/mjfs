@@ -101,13 +101,13 @@ namespace mjx {
             }
         };
 
-        class _Dir_iter : public _Dir_iter_base {
+        class _Dir_iter : public _Any_dir_iter, public _Dir_iter_base {
         public:
             _Dir_iter() = delete;
 
             explicit _Dir_iter(const path& _Target) : _Dir_iter_base(_Target) {}
 
-            ~_Dir_iter() noexcept {}
+            ~_Dir_iter() noexcept override {}
 
             _Dir_iter(const _Dir_iter&)     = default;
             _Dir_iter(_Dir_iter&&) noexcept = default;
@@ -133,9 +133,25 @@ namespace mjx {
                 _Assign();
                 return true;
             }
+
+            _Dir_iter* _Normal() noexcept override {
+                return this;
+            }
+
+            const _Dir_iter* _Normal() const noexcept override {
+                return this;
+            }
+
+            _Recursive_dir_iter* _Recursive() noexcept override {
+                return nullptr; // not convertible
+            }
+
+            const _Recursive_dir_iter* _Recursive() const noexcept override {
+                return nullptr; // not convertible
+            }
         };
 
-        class _Recursive_dir_iter : public _Dir_iter_base {
+        class _Recursive_dir_iter : public _Any_dir_iter, public _Dir_iter_base {
         public:
             ::std::vector<void*> _Stack;
             directory_options _Options;
@@ -146,7 +162,7 @@ namespace mjx {
             explicit _Recursive_dir_iter(const path& _Target, const directory_options _Options)
                 : _Dir_iter_base(_Target), _Stack(), _Options(_Options), _Recursion_pending(false) {}
 
-            ~_Recursive_dir_iter() noexcept {}
+            ~_Recursive_dir_iter() noexcept override {}
 
             _Recursive_dir_iter(const _Recursive_dir_iter&)     = default;
             _Recursive_dir_iter(_Recursive_dir_iter&&) noexcept = default;
@@ -243,6 +259,22 @@ namespace mjx {
                 _Remove_filename_and_slash(_Path);
                 _Recursion_pending = false; // reset recursion flag
                 return _Advance(); // skip current entry (always the directory we were in)
+            }
+
+            _Dir_iter* _Normal() noexcept override {
+                return nullptr; // not convertible
+            }
+
+            const _Dir_iter* _Normal() const noexcept override {
+                return nullptr; // not convertible
+            }
+
+            _Recursive_dir_iter* _Recursive() noexcept override {
+                return this;
+            }
+
+            const _Recursive_dir_iter* _Recursive() const noexcept override {
+                return this;
             }
         };
     } // namespace mjfs_impl

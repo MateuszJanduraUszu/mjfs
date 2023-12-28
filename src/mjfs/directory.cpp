@@ -68,18 +68,22 @@ namespace mjx {
         return mjfs_impl::_Get_reparse_tag(_Mypath.c_str()) == mjfs_impl::_File_reparse_tag::_Mount_point;
     }
 
+    _Any_dir_iter::~_Any_dir_iter() noexcept {
+        // overrided by _Dir_iter and _Recursive_dir_iter
+    }
+
     directory_iterator::directory_iterator() noexcept : _Myimpl(nullptr) {}
 
     directory_iterator::directory_iterator(const path& _Target)
         : _Myimpl(::mjx::create_object<mjfs_impl::_Dir_iter>(_Target)) {
-        if (!_Myimpl->_Skip_dots()) {
+        if (!_Myimpl->_Normal()->_Skip_dots()) {
             _Myimpl.reset();
         }
     }
 
     directory_iterator::directory_iterator(const path& _Target, const directory_options)
         : _Myimpl(::mjx::create_object<mjfs_impl::_Dir_iter>(_Target)) {
-        if (!_Myimpl->_Skip_dots()) {
+        if (!_Myimpl->_Normal()->_Skip_dots()) {
             _Myimpl.reset();
         }
     }
@@ -98,7 +102,7 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to dereference invalid iterator");
 #endif // _DEBUG
-        return _Myimpl->_Entry;
+        return _Myimpl->_Normal()->_Entry;
     }
 
     directory_iterator::pointer directory_iterator::operator->() const noexcept {
@@ -109,7 +113,7 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to advance invalid iterator");
 #endif // _DEBUG
-        if (!_Myimpl->_Advance()) {
+        if (!_Myimpl->_Normal()->_Advance()) {
             _Myimpl.reset();
         }
 
@@ -128,7 +132,7 @@ namespace mjx {
 
     recursive_directory_iterator::recursive_directory_iterator(const path& _Target)
         : _Myimpl(::mjx::create_object<mjfs_impl::_Recursive_dir_iter>(_Target, directory_options::none)) {
-        if (!_Myimpl->_Skip_dots()) {
+        if (!_Myimpl->_Recursive()->_Skip_dots()) {
             _Myimpl.reset();
         }
     }
@@ -136,7 +140,7 @@ namespace mjx {
     recursive_directory_iterator::recursive_directory_iterator(
         const path& _Target, const directory_options _Options)
         : _Myimpl(::mjx::create_object<mjfs_impl::_Recursive_dir_iter>(_Target, _Options)) {
-        if (!_Myimpl->_Skip_dots()) {
+        if (!_Myimpl->_Recursive()->_Skip_dots()) {
             _Myimpl.reset();
         }
     }
@@ -155,7 +159,7 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to dereference invalid iterator");
 #endif // _DEBUG
-        return _Myimpl->_Entry;
+        return _Myimpl->_Recursive()->_Entry;
     }
 
     recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const noexcept {
@@ -166,7 +170,7 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to advance invalid iterator");
 #endif // _DEBUG
-        if (!_Myimpl->_Advance()) {
+        if (!_Myimpl->_Recursive()->_Advance()) {
             _Myimpl.reset();
         }
 
@@ -177,35 +181,35 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
 #endif // _DEBUG
-        return _Myimpl->_Options;
+        return _Myimpl->_Recursive()->_Options;
     }
 
     int recursive_directory_iterator::depth() const noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
 #endif // _DEBUG
-        return static_cast<int>(_Myimpl->_Stack.size());
+        return static_cast<int>(_Myimpl->_Recursive()->_Stack.size());
     }
 
     bool recursive_directory_iterator::recursion_pending() const noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
 #endif // _DEBUG
-        return _Myimpl->_Recursion_pending;
+        return _Myimpl->_Recursive()->_Recursion_pending;
     }
 
     void recursive_directory_iterator::disable_recursion_pending() noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
 #endif // _DEBUG
-        _Myimpl->_Recursion_pending = false;
+        _Myimpl->_Recursive()->_Recursion_pending = false;
     }
 
     void recursive_directory_iterator::pop() {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to use invalid iterator");
 #endif // _DEBUG
-        _Myimpl->_Pop();
+        _Myimpl->_Recursive()->_Pop();
     }
 
     recursive_directory_iterator begin(recursive_directory_iterator _Iter) noexcept {

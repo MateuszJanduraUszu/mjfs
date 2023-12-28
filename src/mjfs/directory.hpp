@@ -6,10 +6,10 @@
 #pragma once
 #ifndef _MJFS_DIRECTORY_HPP_
 #define _MJFS_DIRECTORY_HPP_
-#include <memory>
 #include <mjfs/api.hpp>
 #include <mjfs/file.hpp>
 #include <mjfs/path.hpp>
+#include <mjmem/smart_pointer.hpp>
 
 namespace mjx {
     namespace mjfs_impl {
@@ -67,9 +67,22 @@ namespace mjx {
 
     private:
         friend mjfs_impl::_Dir_iter_base;
-
+        
         file_attribute _Myattr = file_attribute::none;
         path _Mypath;
+    };
+
+    class _Any_dir_iter { // base class for any kind of directory iterator
+    public:
+        using _Normal_t    = mjfs_impl::_Dir_iter;
+        using _Recursive_t = mjfs_impl::_Recursive_dir_iter;
+
+        virtual ~_Any_dir_iter() noexcept;
+
+        virtual _Normal_t* _Normal() noexcept                   = 0;
+        virtual const _Normal_t* _Normal() const noexcept       = 0;
+        virtual _Recursive_t* _Recursive() noexcept             = 0;
+        virtual const _Recursive_t* _Recursive() const noexcept = 0;
     };
 
     class _MJFS_API directory_iterator { // an iterator to the contents of the directory
@@ -108,8 +121,8 @@ namespace mjx {
         directory_iterator& operator++();
 
     private:
-#pragma warning(suppress : 4251) // C4251: _Dir_iter needs to have dll-interface
-        ::std::shared_ptr<mjfs_impl::_Dir_iter> _Myimpl;
+#pragma warning(suppress : 4251) // C4251: _Any_dir_iter needs to have dll-interface
+        smart_ptr<_Any_dir_iter> _Myimpl;
     };
 
     _MJFS_API directory_iterator begin(directory_iterator _Iter) noexcept;
@@ -166,8 +179,8 @@ namespace mjx {
         void pop();
 
     private:
-#pragma warning(suppress : 4251) // C4251: _Recursive_dir_iter needs to have dll-interface
-        ::std::shared_ptr<mjfs_impl::_Recursive_dir_iter> _Myimpl;
+#pragma warning(suppress : 4251) // C4251: _Any_dir_iter needs to have dll-interface
+        smart_ptr<_Any_dir_iter> _Myimpl;
     };
 
     _MJFS_API recursive_directory_iterator begin(recursive_directory_iterator _Iter) noexcept;
