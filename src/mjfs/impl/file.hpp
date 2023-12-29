@@ -7,9 +7,12 @@
 #ifndef _MJFS_IMPL_FILE_HPP_
 #define _MJFS_IMPL_FILE_HPP_
 #include <cstdint>
+#include <cwchar>
 #include <mjfs/bitmask.hpp>
 #include <mjfs/file.hpp>
 #include <mjfs/impl/tinywin.hpp>
+#include <mjmem/allocator.hpp>
+#include <mjstr/string_view.hpp>
 
 namespace mjx {
     namespace mjfs_impl {
@@ -148,6 +151,37 @@ namespace mjx {
             }
 
             return _Clear_delete_flag(_Handle);
+        }
+
+        template <class _Ty>
+        struct _Allocated_object {
+            _Ty* _Obj;
+            size_t _Size;
+
+            _Ty* operator->() const noexcept {
+                return _Obj;
+            }
+
+            _Allocated_object(const size_t _Size)
+                : _Obj(static_cast<_Ty*>(::mjx::get_allocator().allocate(_Size))), _Size(_Size) {}
+
+            ~_Allocated_object() noexcept {
+                ::mjx::get_allocator().deallocate(_Obj, _Size);
+            }
+        };
+
+        inline bool _Rename_file_by_handle(void* const _Handle, const unicode_string_view _New_path) {
+            _Allocated_object<FILE_RENAME_INFO> _Info(
+                sizeof(FILE_RENAME_INFO) + ((_New_path.size() + 1) * sizeof(wchar_t)));
+            _Info->ReplaceIfExists = true;
+            _Info->RootDirectory   = nullptr;
+#ifdef _M_X64
+            _Info->FileNameLength  = static_cast<unsigned long>(_New_path.size() * sizeof(wchar_t));
+#else // ^^^ _M_X64 ^^^ / vvv _M_IX86 vvv
+            _Info->FileNameLength  = _New_path.size() * sizeof(wchar_t);
+#endif // _M_X64
+            ::wmemcpy(_Info->FileName, _New_path.data(), _New_path.size() + 1);
+            return _Set_file_information<FileRenameInfo>(_Handle, *_Info._Obj);
         }
     } // namespace mjfs_impl
 } // namespace mjx

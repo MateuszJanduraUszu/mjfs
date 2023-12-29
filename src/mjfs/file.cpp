@@ -72,6 +72,14 @@ namespace mjx {
         return is_open() ? mjfs_impl::_Get_file_size(_Myhandle) : 0;
     }
 
+    bool file::rename(const path& _New_path) {
+        if (!is_open() || mjfs_impl::_Is_file_temporary(_Myhandle)) {
+            return false;
+        }
+
+        return mjfs_impl::_Rename_file_by_handle(_Myhandle, _New_path.native());
+    }
+
     bool file::resize(const uint64_t _New_size) noexcept {
         return is_open() ? mjfs_impl::_Resize_file(_Myhandle, _New_size) : false;
     }

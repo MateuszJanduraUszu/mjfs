@@ -96,6 +96,9 @@ namespace mjx {
         // returns the file size
         uint64_t size() const noexcept;
 
+        // renames the file
+        bool rename(const path& _New_path);
+
         // resizes the file
         bool resize(const uint64_t _New_size) noexcept;
 
@@ -125,7 +128,7 @@ namespace mjx {
     _MJFS_API bool delete_file(const path& _Target);
     _MJFS_API bool delete_file(file& _File);
 
-    _MJFS_API bool rename(const path& _Target, const path& _New_name);
+    _MJFS_API bool rename(const path& _Old_path, const path& _New_path);
 } // namespace mjx
 
 #endif // _MJFS_FILE_HPP_
