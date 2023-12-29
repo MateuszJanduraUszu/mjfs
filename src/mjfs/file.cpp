@@ -129,8 +129,8 @@ namespace mjx {
     }
 
     bool create_file(const path& _Path, file* const _File) {
-        return ::mjx::create_file(_Path, file_share::none, file_attribute::normal,
-            file_flag::none, file_perms::all, _File);
+        return ::mjx::create_file(
+            _Path, file_share::none, file_attribute::normal, file_flag::none, file_perms::all, _File);
     }
 
     bool delete_file(const path& _Target) {

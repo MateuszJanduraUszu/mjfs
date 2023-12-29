@@ -72,7 +72,7 @@ namespace mjx {
         inline bool _Is_file_readonly(const file_attribute _Attributes) noexcept {
             return _Has_bits(_Attributes, file_attribute::readonly);
         }
-        
+
         template <FILE_INFO_BY_HANDLE_CLASS _Class, class _Ty>
         inline bool _Set_file_information(void* const _Handle, _Ty& _Info) noexcept {
             return ::SetFileInformationByHandle(_Handle, _Class, &_Info, sizeof(_Ty)) != 0;
@@ -105,6 +105,17 @@ namespace mjx {
             return _Seek_file(_Handle, _New_size) && ::SetEndOfFile(_Handle) != 0;
         }
 
+        inline bool _Is_file_temporary(void* const _Handle) noexcept {
+            FILE_STANDARD_INFO _Info = {0};
+            if (::GetFileInformationByHandleEx(
+                _Handle, FileStandardInfo, &_Info, sizeof(FILE_STANDARD_INFO)) == 0) {
+                return false;
+            }
+
+            return _Info.DeletePending == 1
+                && _Has_bits(_Get_file_attributes(_Handle), file_attribute::temporary);
+        }
+
         enum class _Set_delete_flag_result : unsigned char {
             _Success,
             _Access_denied,
@@ -120,6 +131,23 @@ namespace mjx {
                 return ::GetLastError() == ERROR_ACCESS_DENIED ?
                     _Set_delete_flag_result::_Access_denied : _Set_delete_flag_result::_Error;
             }
+        }
+
+        inline bool _Clear_delete_flag(void* const _Handle) noexcept {
+            FILE_DISPOSITION_INFO _Info;
+            _Info.DeleteFile = false;
+            return _Set_file_information<FileDispositionInfo>(_Handle, _Info);
+        }
+
+        inline bool _Make_file_regular(void* const _Handle) noexcept {
+            const file_attribute _Attributes = _Get_file_attributes(_Handle);
+            if (_Has_bits(_Attributes, file_attribute::temporary)) { // remove attribute
+                if (!_Set_file_attributes(_Handle, _Attributes & ~file_attribute::temporary)) {
+                    return false;
+                }
+            }
+
+            return _Clear_delete_flag(_Handle);
         }
     } // namespace mjfs_impl
 } // namespace mjx
