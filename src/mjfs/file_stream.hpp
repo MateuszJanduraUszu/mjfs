@@ -63,6 +63,10 @@ namespace mjx {
         int_type read(char_type* const _Buf, const int_type _Count) noexcept;
         int_type read(byte_string& _Buf) noexcept;
 
+        // reads a byte sequence from the stream, fails if there is not enough data to read
+        bool read_exactly(char_type* const _Buf, const int_type _Count) noexcept;
+        bool read_exactly(byte_string& _Buf) noexcept;
+
         // writes a byte sequence to the stream
         bool write(const char_type* const _Data, const int_type _Count) noexcept;
         bool write(const byte_string_view _Data) noexcept;

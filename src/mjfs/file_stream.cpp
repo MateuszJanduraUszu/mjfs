@@ -82,6 +82,14 @@ namespace mjx {
         return read(_Buf.data(), _Buf.size());
     }
 
+    bool file_stream::read_exactly(char_type* const _Buf, const int_type _Count) noexcept {
+        return read(_Buf, _Count) == _Count;
+    }
+
+    bool file_stream::read_exactly(byte_string& _Buf) noexcept {
+        return read(_Buf) == _Buf.size();
+    }
+
     bool file_stream::write(const char_type* const _Data, const int_type _Count) noexcept {
         if (!is_open()) {
             return false;
