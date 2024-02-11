@@ -11,6 +11,17 @@
 
 namespace mjx {
     namespace test {
+        TEST(path, append) {
+            EXPECT_EQ(path(L"//host") / L"foo", L"//host/foo");
+            EXPECT_EQ(path(L"//host/") / L"foo", L"//host/foo");
+            EXPECT_EQ(path(L"foo") / L"C:/bar", L"C:/bar");
+        }
+
+        TEST(path, make_preferred) {
+            EXPECT_EQ(path(L"a/b/c").make_preferred(), L"a\\b\\c");
+            EXPECT_EQ(path(L"a\\b\\c").make_preferred(), L"a\\b\\c");
+        }
+
         TEST(path, remove_filename) {
             EXPECT_EQ(path(L"foo/bar").remove_filename(), path(L"foo/"));
             EXPECT_FALSE(path(L"foo/bar").remove_filename().has_filename());
@@ -28,22 +39,25 @@ namespace mjx {
             EXPECT_FALSE(path(L"").remove_filename().has_filename());
         }
 
+        TEST(path, replace_filename) {
+            EXPECT_EQ(path(L"/foo").replace_filename(L"bar"), L"/bar");
+            EXPECT_EQ(path(L"/").replace_filename(L"bar"), L"/bar");
+            EXPECT_EQ(path(L"").replace_filename(L"pub"), L"pub");
+        }
+
         TEST(path, replace_extension) {
             EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L".png"), L"/foo/bar.png");
             EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L"png"), L"/foo/bar.png");
             EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L"."), L"/foo/bar.");
             EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L""), L"/foo/bar");
-
             EXPECT_EQ(path(L"/foo/bar").replace_extension(L".png"), L"/foo/bar.png");
             EXPECT_EQ(path(L"/foo/bar").replace_extension(L"png"), L"/foo/bar.png");
             EXPECT_EQ(path(L"/foo/bar").replace_extension(L"."), L"/foo/bar.");
             EXPECT_EQ(path(L"/foo/bar").replace_extension(L""), L"/foo/bar");
-
             EXPECT_EQ(path(L"/foo/.").replace_extension(L".png"), L"/foo/..png");
             EXPECT_EQ(path(L"/foo/.").replace_extension(L"png"), L"/foo/..png");
             EXPECT_EQ(path(L"/foo/.").replace_extension(L"."), L"/foo/..");
             EXPECT_EQ(path(L"/foo/.").replace_extension(L""), L"/foo/.");
-
             EXPECT_EQ(path(L"/foo/").replace_extension(L".png"), L"/foo/.png");
             EXPECT_EQ(path(L"/foo/").replace_extension(L"png"), L"/foo/.png");
         }
