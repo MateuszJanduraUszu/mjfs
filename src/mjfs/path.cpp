@@ -144,7 +144,16 @@ namespace mjx {
             _Mystr.erase(_Mystr.size() - _Length);
         }
 
-        return *this /= _Replacement;
+        if (!_Replacement.empty()) { // append new extension
+            const unicode_string_view _Str = _Replacement.native();
+            if (!_Str.starts_with(L'.')) { // put a dot between filename and extension
+                _Mystr.push_back(L'.');
+            }
+
+            _Mystr.append(_Str);
+        }
+
+        return *this;
     }
 
     void path::swap(path& _Other) noexcept {
