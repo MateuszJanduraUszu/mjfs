@@ -28,6 +28,26 @@ namespace mjx {
             EXPECT_FALSE(path(L"").remove_filename().has_filename());
         }
 
+        TEST(path, replace_extension) {
+            EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L".png"), L"/foo/bar.png");
+            EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L"png"), L"/foo/bar.png");
+            EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L"."), L"/foo/bar.");
+            EXPECT_EQ(path(L"/foo/bar.jpg").replace_extension(L""), L"/foo/bar");
+
+            EXPECT_EQ(path(L"/foo/bar").replace_extension(L".png"), L"/foo/bar.png");
+            EXPECT_EQ(path(L"/foo/bar").replace_extension(L"png"), L"/foo/bar.png");
+            EXPECT_EQ(path(L"/foo/bar").replace_extension(L"."), L"/foo/bar.");
+            EXPECT_EQ(path(L"/foo/bar").replace_extension(L""), L"/foo/bar");
+
+            EXPECT_EQ(path(L"/foo/.").replace_extension(L".png"), L"/foo/..png");
+            EXPECT_EQ(path(L"/foo/.").replace_extension(L"png"), L"/foo/..png");
+            EXPECT_EQ(path(L"/foo/.").replace_extension(L"."), L"/foo/..");
+            EXPECT_EQ(path(L"/foo/.").replace_extension(L""), L"/foo/.");
+
+            EXPECT_EQ(path(L"/foo/").replace_extension(L".png"), L"/foo/.png");
+            EXPECT_EQ(path(L"/foo/").replace_extension(L"png"), L"/foo/.png");
+        }
+
         TEST(path, root_name) {
             EXPECT_EQ(path(L"C:\\Windows\\System32\\").root_name(), path(L"C:"));
             EXPECT_FALSE(path(L"/foo/bar.txt").has_root_name());
