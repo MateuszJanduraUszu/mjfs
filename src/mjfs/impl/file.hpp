@@ -158,14 +158,14 @@ namespace mjx {
             _Ty* _Obj;
             size_t _Size;
 
-            _Ty* operator->() const noexcept {
+            constexpr _Ty* operator->() const noexcept {
                 return _Obj;
             }
 
-            _Allocated_object(const size_t _Size)
+            constexpr _Allocated_object(const size_t _Size)
                 : _Obj(static_cast<_Ty*>(::mjx::get_allocator().allocate(_Size))), _Size(_Size) {}
 
-            ~_Allocated_object() noexcept {
+            constexpr ~_Allocated_object() noexcept {
                 ::mjx::get_allocator().deallocate(_Obj, _Size);
             }
         };
