@@ -22,7 +22,7 @@ namespace mjx {
     inline constexpr bool _Is_valid_path_source<unicode_string_view> = true;
 
     template <class _Source>
-    using _Enable_if_valid_path_source_t = ::std::enable_if_t<_Is_valid_path_source<_Source>, int>;
+    concept path_source = _Is_valid_path_source<_Source>;
 
     class path_iterator;
 
@@ -49,7 +49,7 @@ namespace mjx {
         path(const value_type* const _Str, format _Fmt = auto_format);
         path(string_type&& _Str, format _Fmt = auto_format) noexcept;
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path(const _Source& _Src, format _Fmt = auto_format) : _Mystr(_Src.data(), _Src.size()) {
             _Apply_format(_Fmt);
         }
@@ -57,7 +57,7 @@ namespace mjx {
         path& operator=(const path& _Other);
         path& operator=(path&& _Other) noexcept;
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& operator=(const _Source& _Src) {
             _Mystr.assign(_Src.data(), _Src.size());
             return *this;
@@ -69,7 +69,7 @@ namespace mjx {
         // assigns a new path
         path& assign(string_type&& _Str) noexcept;
         
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& assign(const _Source& _Src) {
             _Mystr.assign(_Src.data(), _Src.size());
             return *this;
@@ -77,12 +77,12 @@ namespace mjx {
 
         path& operator/=(const path& _Other);
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& operator/=(const _Source& _Src) {
             return operator/=(path{_Src});
         }
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& append(const _Source& _Src) {
             return operator/=(path{_Src});
         }
@@ -93,13 +93,13 @@ namespace mjx {
         path& operator+=(const value_type* const _Str);
         path& operator+=(const value_type _Ch);
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& operator+=(const _Source& _Src) {
             _Mystr += _Src;
             return *this;
         }
 
-        template <class _Source, _Enable_if_valid_path_source_t<_Source> = 0>
+        template <path_source _Source>
         path& concat(const _Source& _Src) {
             _Mystr += _Src;
             return *this;
@@ -203,7 +203,6 @@ namespace mjx {
     };
 
     _MJFS_API bool operator==(const path& _Left, const path& _Right);
-    _MJFS_API bool operator!=(const path& _Left, const path& _Right);
     _MJFS_API path operator/(const path& _Left, const path& _Right);
 
     class _MJFS_API path_iterator { // input iterator for path
@@ -249,7 +248,6 @@ namespace mjx {
     };
 
     _MJFS_API bool operator==(const path_iterator& _Left, const path_iterator& _Right);
-    _MJFS_API bool operator!=(const path_iterator& _Left, const path_iterator& _Right);
 
     _MJFS_API path current_path();
     _MJFS_API bool current_path(const path& _New_path);
