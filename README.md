@@ -1,7 +1,7 @@
 # MJFS
 
 MJFS is an internal module designed for use in future projects.
-It is written in C++17.
+It is written in C++20.
 
 ## Setup
 
@@ -36,7 +36,7 @@ based on your requirements:
 ## Compatibility
 
 MJFS is compatible with Windows Vista and later operating systems,
-and it requires C++17 support.
+and it requires C++20 support.
 
 ## Questions and support
 
