@@ -108,9 +108,6 @@ namespace mjx {
         // checks whether two iterators are equal
         bool operator==(const directory_iterator& _Other) const noexcept;
 
-        // checks whether two iterators are not equal
-        bool operator!=(const directory_iterator& _Other) const noexcept;
-
         // returns a reference to the current directory entry
         reference operator*() const noexcept;
 
@@ -150,9 +147,6 @@ namespace mjx {
 
         // checks whether two iterators are equal
         bool operator==(const recursive_directory_iterator& _Other) const noexcept;
-
-        // checks whether two iterators are not equal
-        bool operator!=(const recursive_directory_iterator& _Other) const noexcept;
 
         // returns a reference to the current directory entry
         reference operator*() const noexcept;

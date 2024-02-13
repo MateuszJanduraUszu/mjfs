@@ -94,10 +94,6 @@ namespace mjx {
         return _Myimpl == _Other._Myimpl;
     }
 
-    bool directory_iterator::operator!=(const directory_iterator& _Other) const noexcept {
-        return _Myimpl != _Other._Myimpl;
-    }
-
     directory_iterator::reference directory_iterator::operator*() const noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Myimpl != nullptr, "attempt to dereference invalid iterator");
@@ -149,10 +145,6 @@ namespace mjx {
 
     bool recursive_directory_iterator::operator==(const recursive_directory_iterator& _Other) const noexcept {
         return _Myimpl == _Other._Myimpl;
-    }
-
-    bool recursive_directory_iterator::operator!=(const recursive_directory_iterator& _Other) const noexcept {
-        return _Myimpl != _Other._Myimpl;
     }
 
     recursive_directory_iterator::reference recursive_directory_iterator::operator*() const noexcept {

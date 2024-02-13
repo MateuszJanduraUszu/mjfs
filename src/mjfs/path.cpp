@@ -276,14 +276,10 @@ namespace mjx {
         return _Left.native() == _Right.native();
     }
 
-    bool operator!=(const path& _Left, const path& _Right) {
-        return _Left.native() != _Right.native();
-    }
-
     path operator/(const path& _Left, const path& _Right) {
-        path _Result = _Left;
-        _Result     /= _Right;
-        return _Result;
+        path _Path = _Left;
+        _Path     /= _Right;
+        return _Path;
     }
 
     path_iterator::path_iterator() noexcept : _Mypath(nullptr), _Myelem(), _Myoff(0) {}
@@ -399,10 +395,6 @@ namespace mjx {
 
     bool operator==(const path_iterator& _Left, const path_iterator& _Right) {
         return _Left._Myelem == _Right._Myelem && _Left._Myoff == _Right._Myoff;
-    }
-
-    bool operator!=(const path_iterator& _Left, const path_iterator& _Right) {
-        return !(_Left == _Right);
     }
 
     path current_path() {
