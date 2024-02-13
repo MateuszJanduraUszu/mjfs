@@ -6,6 +6,7 @@
 #pragma once
 #ifndef _MJSTR_STRING_HPP_
 #define _MJSTR_STRING_HPP_
+#include <compare>
 #include <cstddef>
 #include <iterator>
 #include <mjstr/api.hpp>
@@ -65,23 +66,11 @@ namespace mjx {
         // checks if two iterators are equal
         bool operator==(const string_const_iterator& _Other) const noexcept;
 
-        // checks if two iterators are not equal
-        bool operator!=(const string_const_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is greater than other one
-        bool operator>(const string_const_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is greater than or equal to other one
-        bool operator>=(const string_const_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is less than other one
-        bool operator<(const string_const_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is less than or equal to other one
-        bool operator<=(const string_const_iterator& _Other) const noexcept;
+        // performs three-way comparison between two iterators
+        ::std::strong_ordering operator<=>(const string_const_iterator& _Other) const noexcept;
 
     private:
-        template <class, class>
+        template <class>
         friend class string;
 
         pointer _Myptr;
@@ -153,11 +142,10 @@ namespace mjx {
     using utf8_string_iterator    = string_iterator<char>;
     using unicode_string_iterator = string_iterator<wchar_t>;
 
-    template <class _Elem, class _Traits = char_traits<_Elem>>
+    template <class _Elem>
     class _MJSTR_API string {
     public:
-        static_assert(_Validate_elem<_Elem>, "invalid element type for string<CharT, Traits>");
-        static_assert(_Validate_traits<_Elem, _Traits>, "invalid traits type for string<CharT, Traits>");
+        static_assert(compatible_element<_Elem>, "invalid element type for string<CharT, Traits>");
 
         using value_type      = _Elem;
         using size_type       = size_t;
@@ -166,7 +154,7 @@ namespace mjx {
         using const_pointer   = const _Elem*;
         using reference       = _Elem&;
         using const_reference = const _Elem&;
-        using traits_type     = _Traits;
+        using traits_type     = char_traits<_Elem>;
 
         using const_iterator = string_const_iterator<_Elem>;
         using iterator       = string_iterator<_Elem>;
@@ -181,26 +169,26 @@ namespace mjx {
         string(const size_type _Count, const value_type _Ch);
         string(const_pointer _Ptr, const size_type _Count);
         string(const_pointer _Ptr);
-        string(const string_view<_Elem, _Traits> _Str);
+        string(const string_view<_Elem> _Str);
 
         string(nullptr_t)            = delete;
         string& operator=(nullptr_t) = delete;
 
         // returns a non-modifiable string_view into the entire string
-        operator string_view<_Elem, _Traits>() const noexcept;
+        operator string_view<_Elem>() const noexcept;
 
         // assigns characters to the string
         string& operator=(const string& _Str);
         string& operator=(string&& _Str) noexcept;
         string& operator=(const_pointer _Ptr);
         string& operator=(const value_type _Ch);
-        string& operator=(const string_view<_Elem, _Traits> _Str);
+        string& operator=(const string_view<_Elem> _Str);
 
         // appends characters to the end
         string& operator+=(const string& _Str);
         string& operator+=(const_pointer _Ptr);
         string& operator+=(const value_type _Ch);
-        string& operator+=(const string_view<_Elem, _Traits> _Str);
+        string& operator+=(const string_view<_Elem> _Str);
 
         // accesses the specified character
         reference operator[](const size_type _Idx) noexcept;
@@ -246,7 +234,7 @@ namespace mjx {
         static size_type max_size() noexcept;
         
         // returns the string as a view
-        string_view<_Elem, _Traits> view() const noexcept;
+        string_view<_Elem> view() const noexcept;
 
         // reserves storage
         void reserve(size_type _New_capacity);
@@ -278,14 +266,14 @@ namespace mjx {
         string& assign(string&& _Str) noexcept;
         string& assign(const_pointer _Ptr, const size_type _Count);
         string& assign(const_pointer _Ptr);
-        string& assign(const string_view<_Elem, _Traits> _Str);
+        string& assign(const string_view<_Elem> _Str);
 
         // appends characters to the end
         string& append(const size_type _Count, const value_type _Ch);
         string& append(const string& _Str);
         string& append(const_pointer _Ptr, const size_type _Count);
         string& append(const_pointer _Ptr);
-        string& append(const string_view<_Elem, _Traits> _Str);
+        string& append(const string_view<_Elem> _Str);
 
         // appends a character to the end
         void push_back(const value_type _Ch);
@@ -304,7 +292,7 @@ namespace mjx {
         string& insert(const size_type _Off, const_pointer _Ptr, const size_type _Count);
         string& insert(const size_type _Off, const string& _Str);
         iterator insert(const const_iterator _Where, const value_type _Ch);
-        string& insert(const size_type _Off, const string_view<_Elem, _Traits> _Str);
+        string& insert(const size_type _Off, const string_view<_Elem> _Str);
 
         // replaces specified portion of the string
         string& replace(const size_type _Off, size_type _Count, const string& _Str);
@@ -319,17 +307,16 @@ namespace mjx {
             const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch);
         string& replace(const const_iterator _First,
             const const_iterator _Last, const size_type _Count, const value_type _Ch);
-        string& replace(const size_type _Off, size_type _Count, const string_view<_Elem, _Traits> _Str);
+        string& replace(const size_type _Off, size_type _Count, const string_view<_Elem> _Str);
         string& replace(
-            const const_iterator _First, const const_iterator _Last, const string_view<_Elem, _Traits> _Str);
+            const const_iterator _First, const const_iterator _Last, const string_view<_Elem> _Str);
 
         // finds the first occurrence of the given substring
         size_type find(const string& _Str, const size_type _Off = 0) const;
         size_type find(
             const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type find(const value_type _Ch, const size_type _Off = 0) const noexcept;
-        size_type find(
-            const string_view<_Elem, _Traits> _Str, const size_type _Off = 0) const noexcept;
+        size_type find(const string_view<_Elem> _Str, const size_type _Off = 0) const noexcept;
 
         // finds the last occurrence of the given substring
         size_type rfind(const string& _Str, const size_type _Off = npos) const;
@@ -337,27 +324,26 @@ namespace mjx {
             const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type rfind(const_pointer _Ptr, const size_type _Off = npos) const noexcept;
         size_type rfind(const value_type _Ch, const size_type _Off = npos) const noexcept;
-        size_type rfind(
-            const string_view<_Elem, _Traits> _Str, const size_type _Off = npos) const noexcept;
+        size_type rfind(const string_view<_Elem> _Str, const size_type _Off = npos) const noexcept;
 
         // compares two strings
         int compare(const string& _Str) const;
         int compare(const_pointer _Ptr, const size_type _Count) const noexcept;
         int compare(const_pointer _Ptr) const noexcept;
-        int compare(const string_view<_Elem, _Traits> _Str) const noexcept;
+        int compare(const string_view<_Elem> _Str) const noexcept;
 
         // checks if the string starts with the given prefix
-        bool starts_with(const string_view<_Elem, _Traits> _Str) const noexcept;
+        bool starts_with(const string_view<_Elem> _Str) const noexcept;
         bool starts_with(const value_type _Ch) const noexcept;
         bool starts_with(const_pointer _Ptr) const noexcept;
 
         // checks if the string ends with the given suffix
-        bool ends_with(const string_view<_Elem, _Traits> _Str) const noexcept;
+        bool ends_with(const string_view<_Elem> _Str) const noexcept;
         bool ends_with(const value_type _Ch) const noexcept;
         bool ends_with(const_pointer _Ptr) const noexcept;
 
         // checks if the string contains the given substring or character
-        bool contains(const string_view<_Elem, _Traits> _Str) const noexcept;
+        bool contains(const string_view<_Elem> _Str) const noexcept;
         bool contains(const value_type _Ch) const noexcept;
         bool contains(const_pointer _Ptr) const noexcept;
 
@@ -442,168 +428,140 @@ namespace mjx {
         _Internal_buffer _Mybuf;
     };
 
-    using byte_string    = string<byte_t, char_traits<byte_t>>;
-    using utf8_string    = string<char, char_traits<char>>;
-    using unicode_string = string<wchar_t, char_traits<wchar_t>>;
+    using byte_string    = string<byte_t>;
+    using utf8_string    = string<char>;
+    using unicode_string = string<wchar_t>;
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) {
+    template <class _Elem>
+    inline bool operator==(const string<_Elem>& _Left, const string<_Elem>& _Right) {
         return _Left.compare(_Right) == 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
+    template <class _Elem>
+    inline bool operator==(const string<_Elem>& _Left, const string_view<_Elem> _Right) {
         return _Left.compare(_Right) == 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
-        return _Right.compare(_Left) == 0;
-    }
-
-    template <class _Elem, class _Traits>
-    inline bool operator==(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) {
+    template <class _Elem>
+    inline bool operator==(const string<_Elem>& _Left, const _Elem* const _Right) {
         return _Left.compare(_Right) == 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
-        return _Right.compare(_Left) == 0;
+    template <class _Elem>
+    inline ::std::strong_ordering operator<=>(const string<_Elem>& _Left, const string<_Elem>& _Right) {
+        return _Left.compare(_Right) <=> 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline ::std::strong_ordering operator<=>(const string<_Elem>& _Left, const string_view<_Elem> _Right) {
+        return _Left.compare(_Right) <=> 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline ::std::strong_ordering operator<=>(const string<_Elem>& _Left, const _Elem* const _Right) {
+        return _Left.compare(_Right) <=> 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline string<_Elem> operator+(const string<_Elem>& _Left, const string<_Elem>& _Right) {
+        string<_Elem> _Str(_Left);
+        _Str.append(_Right);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline string<_Elem> operator+(const string<_Elem>& _Left, const _Elem* const _Right) {
+        string<_Elem> _Str(_Left);
+        _Str.append(_Right);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline string<_Elem> operator+(const string<_Elem>& _Left, const _Elem _Right) {
+        string<_Elem> _Str(_Left);
+        _Str.push_back(_Right);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) noexcept {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result                       += _Right;
-        return ::std::move(_Result);
+    template <class _Elem>
+    inline string<_Elem> operator+(const string<_Elem>& _Left, const string_view<_Elem> _Right) {
+        string<_Elem> _Str(_Left);
+        _Str.append(_Right);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, const _Elem* const _Right) noexcept {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result                       += _Right;
-        return ::std::move(_Result);
+    template <class _Elem>
+    inline string<_Elem> operator+(const _Elem* const _Left, const string<_Elem>& _Right) {
+        string<_Elem> _Str(_Right);
+        _Str.append(_Left);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const string<_Elem, _Traits>& _Left, const _Elem _Right) {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result.push_back(_Right);
-        return ::std::move(_Result);
+    template <class _Elem>
+    inline string<_Elem> operator+(const _Elem _Left, const string<_Elem>& _Right) {
+        string<_Elem> _Str(_Right);
+        _Str.insert(0, 1, _Left);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result                       += _Right;
-        return ::std::move(_Result);
+    template <class _Elem>
+    inline string<_Elem> operator+(const string_view<_Elem> _Left, const string<_Elem>& _Right) {
+        string<_Elem> _Str(_Left);
+        _Str.append(_Right);
+        return ::std::move(_Str);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result                       += _Right;
-        return ::std::move(_Result);
-    }
-
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem _Left, const string<_Elem, _Traits>& _Right) {
-        string<_Elem, _Traits> _Result = _Right;
-        _Result.push_back(_Left);
-        return ::std::move(_Result);
-    }
-
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
-        string<_Elem, _Traits> _Result = _Left;
-        _Result                       += _Right;
-        return ::std::move(_Result);
-    }
-
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, string<_Elem, _Traits>&& _Right) {
+    template <class _Elem>
+    inline string<_Elem> operator+(string<_Elem>&& _Left, string<_Elem>&& _Right) {
         _Left.append(::std::move(_Right));
         return ::std::move(_Left);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, const string<_Elem, _Traits>& _Right) {
-        _Left += _Right;
+    template <class _Elem>
+    inline string<_Elem> operator+(string<_Elem>&& _Left, const string<_Elem>& _Right) {
+        _Left.append(_Right);
         return ::std::move(_Left);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, const _Elem* const _Right) {
-        _Left += _Right;
+    template <class _Elem>
+    inline string<_Elem> operator+(string<_Elem>&& _Left, const _Elem* const _Right) {
+        _Left.append(_Right);
         return ::std::move(_Left);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, const _Elem _Right) {
+    template <class _Elem>
+    inline string<_Elem> operator+(string<_Elem>&& _Left, const _Elem _Right) {
         _Left.push_back(_Right);
         return ::std::move(_Left);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, const string_view<_Elem, _Traits> _Right) {
-        _Left += _Right;
+    template <class _Elem>
+    inline string<_Elem> operator+(string<_Elem>&& _Left, const string_view<_Elem> _Right) {
+        _Left.append(_Right);
         return ::std::move(_Left);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, string<_Elem, _Traits>&& _Right) {
-        _Right += _Left;
+    template <class _Elem>
+    inline string<_Elem> operator+(const string<_Elem>& _Left, string<_Elem>&& _Right) {
+        _Right.append(_Left);
         return ::std::move(_Right);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem* const _Left, string<_Elem, _Traits>&& _Right) {
-        _Right += _Left;
+    template <class _Elem>
+    inline string<_Elem> operator+(const _Elem* const _Left, string<_Elem>&& _Right) {
+        _Right.append(_Left);
         return ::std::move(_Right);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem _Left, string<_Elem, _Traits>&& _Right) {
+    template <class _Elem>
+    inline string<_Elem> operator+(const _Elem _Left, string<_Elem>&& _Right) {
         _Right.push_back(_Left);
         return ::std::move(_Right);
     }
 
-    template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const string_view<_Elem, _Traits> _Left, string<_Elem, _Traits>&& _Right) {
-        _Right += _Left;
+    template <class _Elem>
+    inline string<_Elem> operator+(const string_view<_Elem> _Left, string<_Elem>&& _Right) {
+        _Right.append(_Left);
         return ::std::move(_Right);
     }
 } // namespace mjx

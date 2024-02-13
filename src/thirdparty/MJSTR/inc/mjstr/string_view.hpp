@@ -6,6 +6,7 @@
 #pragma once
 #ifndef _MJSTR_STRING_VIEW_HPP_
 #define _MJSTR_STRING_VIEW_HPP_
+#include <compare>
 #include <cstddef>
 #include <iterator>
 #include <mjstr/api.hpp>
@@ -64,20 +65,8 @@ namespace mjx {
         // checks if two iterators are equal
         bool operator==(const string_view_iterator& _Other) const noexcept;
 
-        // checks if two iterators are not equal
-        bool operator!=(const string_view_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is greater than other one
-        bool operator>(const string_view_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is greater than or equal to other one
-        bool operator>=(const string_view_iterator& _Other) const noexcept;
-        
-        // checks if the current iterator is less than other one
-        bool operator<(const string_view_iterator& _Other) const noexcept;
-
-        // checks if the current iterator is less than or equal to other one
-        bool operator<=(const string_view_iterator& _Other) const noexcept;
+        // performs three-way comparison between two iterators
+        ::std::strong_ordering operator<=>(const string_view_iterator& _Other) const noexcept;
 
     private:
         pointer _Myptr;
@@ -91,11 +80,10 @@ namespace mjx {
     using utf8_string_view_iterator    = string_view_iterator<char>;
     using unicode_string_view_iterator = string_view_iterator<wchar_t>;
 
-    template <class _Elem, class _Traits = char_traits<_Elem>>
+    template <class _Elem>
     class _MJSTR_API string_view { // lightweight non-owning read-only view of a string
     public:
-        static_assert(_Validate_elem<_Elem>, "invalid element type for string_view<CharT, Traits>");
-        static_assert(_Validate_traits<_Elem, _Traits>, "invalid traits for string_view<CharT, Traits>");
+        static_assert(compatible_element<_Elem>, "invalid element type for string_view<CharT, Traits>");
 
         using value_type      = _Elem;
         using size_type       = size_t;
@@ -104,7 +92,7 @@ namespace mjx {
         using const_pointer   = const _Elem*;
         using reference       = _Elem&;
         using const_reference = const _Elem&;
-        using traits_type     = _Traits;
+        using traits_type     = char_traits<_Elem>;
 
         using const_iterator = string_view_iterator<_Elem>;
         using iterator       = const_iterator;
@@ -204,40 +192,30 @@ namespace mjx {
         size_type _Mysize;
     };
 
-    using byte_string_view    = string_view<byte_t, char_traits<byte_t>>;
-    using utf8_string_view    = string_view<char, char_traits<char>>;
-    using unicode_string_view = string_view<wchar_t, char_traits<wchar_t>>;
+    using byte_string_view    = string_view<byte_t>;
+    using utf8_string_view    = string_view<char>;
+    using unicode_string_view = string_view<wchar_t>;
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(
-        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+    template <class _Elem>
+    inline bool operator==(const string_view<_Elem> _Left, const string_view<_Elem> _Right) noexcept {
         return _Left.compare(_Right) == 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
+    template <class _Elem>
+    inline bool operator==(const string_view<_Elem> _Left, const _Elem* const _Right) noexcept {
         return _Left.compare(_Right) == 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator==(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
-        return _Right.compare(_Left) == 0;
+    template <class _Elem>
+    inline ::std::strong_ordering operator<=>(
+        const string_view<_Elem> _Left, const string_view<_Elem> _Right) noexcept {
+        return _Left.compare(_Right) <=> 0;
     }
 
-    template <class _Elem, class _Traits>
-    inline bool operator!=(
-        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept {
-        return !(_Left == _Right);
-    }
-
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
-        return !(_Left == _Right);
-    }
-
-    template <class _Elem, class _Traits>
-    inline bool operator!=(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
-        return !(_Left == _Right);
+    template <class _Elem>
+    inline ::std::strong_ordering operator<=>(
+        const string_view<_Elem> _Left, const _Elem* const _Right) noexcept {
+        return _Left.compare(_Right) <=> 0;
     }
 } // namespace mjx
 

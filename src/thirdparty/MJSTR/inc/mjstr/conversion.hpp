@@ -11,6 +11,15 @@
 #include <mjstr/string_view.hpp>
 
 namespace mjx {
+    _MJSTR_API size_t to_byte_string_length(const utf8_string_view _Str) noexcept;
+    _MJSTR_API size_t to_byte_string_length(const unicode_string_view _Str) noexcept;
+    
+    _MJSTR_API size_t to_utf8_string_length(const byte_string_view _Str) noexcept;
+    _MJSTR_API size_t to_utf8_string_length(const unicode_string_view _Str) noexcept;
+
+    _MJSTR_API size_t to_unicode_string_length(const byte_string_view _Str) noexcept;
+    _MJSTR_API size_t to_unicode_string_length(const utf8_string_view _Str) noexcept;
+
     _MJSTR_API byte_string to_byte_string(const utf8_string_view _Str);
     _MJSTR_API byte_string to_byte_string(const unicode_string_view _Str);
 

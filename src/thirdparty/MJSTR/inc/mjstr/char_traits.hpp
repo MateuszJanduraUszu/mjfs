@@ -6,6 +6,7 @@
 #pragma once
 #ifndef _MJSTR_CHAR_TRAITS_HPP_
 #define _MJSTR_CHAR_TRAITS_HPP_
+#include <compare>
 #include <cstddef>
 #include <mjstr/api.hpp>
 #include <type_traits>
@@ -13,20 +14,16 @@
 namespace mjx {
     using byte_t = unsigned char; // byte representation (1-byte non-negative integer)
 
-    template <class _Ty, class... _Types>
-    inline constexpr bool _Is_any_of = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
-
     template <class _Elem>
-    inline constexpr bool _Validate_elem = _Is_any_of<_Elem, byte_t, char, wchar_t>;
-
-    template <class _Elem, class _Traits>
-    inline constexpr bool _Validate_traits = ::std::is_same_v<_Elem, typename _Traits::char_type>;
+    concept compatible_element = ::std::disjunction_v<
+        ::std::is_same<_Elem, byte_t>, ::std::is_same<_Elem, char>, ::std::is_same<_Elem, wchar_t>>;
 
     template <class _Elem>
     struct _MJSTR_API char_traits {
-        static_assert(_Validate_elem<_Elem>, "invalid element type for char_traits<CharT>");
+        static_assert(compatible_element<_Elem>, "invalid element type for char_traits<CharT>");
 
-        using char_type = _Elem;
+        using char_type           = _Elem;
+        using comparison_category = ::std::strong_ordering;
 
         // assigns characters
         static void assign(char_type* _Dest, const size_t _Count, const char_type _Ch) noexcept;
